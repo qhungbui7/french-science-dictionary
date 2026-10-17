@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "French Science & Math Dictionary",
+  "version": "1.0.0",
+  "description": "Precision bilingual French-to-English scientific dictionary for Mathematics, AI, Computer Science, and Science with automatic highlight translation.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "French Science Dictionary",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "data/science_terms.js",
+        "data/academic_french.js",
+        "data/dictionary_core.js",
+        "content/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/content.css",
+        "icons/*",
+        "data/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

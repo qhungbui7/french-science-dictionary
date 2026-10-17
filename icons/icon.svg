@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+
+    <!-- Glowing Accent Gradient -->
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <!-- French Flag Accent -->
+    <linearGradient id="frBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="frRed" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#f43f5e"/>
+    </linearGradient>
+
+    <!-- Gold Accent -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Rounded Container -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bgGrad)" stroke="#334155" stroke-width="8"/>
+
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="36" y="36" width="440" height="440" rx="96" fill="none" stroke="url(#neonGrad)" stroke-width="4" stroke-opacity="0.3"/>
+
+  <!-- Top French Tricolor Ribbon Indicator -->
+  <g transform="translate(186, 68)">
+    <rect x="0" y="0" width="46" height="10" rx="5" fill="#3b82f6"/>
+    <rect x="47" y="0" width="46" height="10" rx="5" fill="#f8fafc"/>
+    <rect x="94" y="0" width="46" height="10" rx="5" fill="#ef4444"/>
+  </g>
+
+  <!-- Central Scientific / Mathematical Iconography -->
+  <!-- Open Dictionary / Tome Wings -->
+  <g transform="translate(256, 270)" filter="url(#glow)">
+    <!-- Left Book Page -->
+    <path d="M -15 -35 C -75 -60 -150 -50 -185 -10 C -190 60 -185 130 -185 130 C -150 95 -75 90 -15 110 Z" 
+          fill="#1e293b" stroke="url(#neonGrad)" stroke-width="8" stroke-linejoin="round"/>
+    
+    <!-- Right Book Page -->
+    <path d="M 15 -35 C 75 -60 150 -50 185 -10 C 190 60 185 130 185 130 C 150 95 75 90 15 110 Z" 
+          fill="#1e293b" stroke="url(#neonGrad)" stroke-width="8" stroke-linejoin="round"/>
+
+    <!-- Spine / Center Column -->
+    <path d="M 0 -42 L 0 115" stroke="#38bdf8" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- Left Wing Symbols: Math Integral & Sigma -->
+    <!-- Integral sign -->
+    <path d="M -115 -10 C -105 -25 -95 -25 -95 -15 C -95 -5 -110 20 -110 35 C -110 45 -100 45 -90 40" 
+          fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+    <!-- Delta / Math symbol -->
+    <path d="M -60 25 L -45 -5 L -30 25 Z" 
+          fill="none" stroke="#818cf8" stroke-width="5" stroke-linejoin="round"/>
+
+    <!-- Right Wing Symbols: AI Neural Nodes & Atom Orbit -->
+    <!-- Neural Node 1 -->
+    <circle cx="60" cy="-5" r="9" fill="#c084fc"/>
+    <!-- Neural Node 2 -->
+    <circle cx="120" cy="15" r="9" fill="#38bdf8"/>
+    <!-- Neural Node 3 -->
+    <circle cx="75" cy="45" r="9" fill="#f43f5e"/>
+    <!-- Interconnecting Synapses -->
+    <line x1="60" y1="-5" x2="120" y2="15" stroke="#a855f7" stroke-width="4" stroke-opacity="0.8"/>
+    <line x1="60" y1="-5" x2="75" y2="45" stroke="#a855f7" stroke-width="4" stroke-opacity="0.8"/>
+    <line x1="120" y1="15" x2="75" y2="45" stroke="#a855f7" stroke-width="4" stroke-opacity="0.8"/>
+  </g>
+
+  <!-- Crown Floating Science Spark / Lambda -->
+  <g transform="translate(256, 150)">
+    <circle cx="0" cy="0" r="18" fill="url(#goldGrad)" filter="url(#glow)"/>
+    <circle cx="0" cy="0" r="10" fill="#fff"/>
+    <!-- Rays -->
+    <line x1="0" y1="-28" x2="0" y2="-20" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+    <line x1="0" y1="20" x2="0" y2="28" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+    <line x1="-28" y1="0" x2="-20" y2="0" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+    <line x1="20" y1="0" x2="28" y2="0" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Text Badge: FR -> EN -->
+  <rect x="146" y="415" width="220" height="42" rx="21" fill="#030712" stroke="#475569" stroke-width="3"/>
+  <text x="256" y="443" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" 
+        font-size="20" font-weight="800" fill="#f8fafc" text-anchor="middle" letter-spacing="3">FR <tspan fill="#38bdf8">→</tspan> EN</text>
+</svg>

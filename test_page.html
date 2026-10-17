@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>French Science & Math Dictionary - Interactive Test Workbench</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1e293b;
+      --accent: #38bdf8;
+      --accent-math: #818cf8;
+      --accent-ai: #34d399;
+      --accent-cs: #c084fc;
+      --accent-science: #fbbf24;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.7;
+      padding: 40px 24px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .instruction-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 36px;
+    }
+
+    .instruction-card h3 {
+      font-size: 16px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .instruction-card ol {
+      padding-left: 20px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .instruction-card ol li {
+      margin-bottom: 6px;
+    }
+
+    .highlight-tip {
+      display: inline-block;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      color: #fde68a;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .article-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: border-color 0.2s ease;
+    }
+
+    .article-card:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .tag-math { background: rgba(129, 140, 248, 0.2); color: var(--accent-math); }
+    .tag-ai { background: rgba(52, 211, 153, 0.2); color: var(--accent-ai); }
+    .tag-cs { background: rgba(192, 132, 252, 0.2); color: var(--accent-cs); }
+    .tag-physics { background: rgba(251, 191, 36, 0.2); color: var(--accent-science); }
+
+    .article-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: #cbd5e1;
+      font-size: 14.5px;
+    }
+
+    /* Target words highlighted with subtle dotted underlines for demonstration */
+    .sample-word {
+      border-bottom: 2px dotted rgba(56, 189, 248, 0.5);
+      cursor: text;
+      transition: background 0.15s ease;
+    }
+
+    .sample-word:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-bottom-color: var(--accent);
+    }
+
+    /* Embedded test runner widget */
+    .interactive-tester {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    .tester-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .tester-input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .tester-input:focus {
+      border-color: var(--accent);
+    }
+
+    .tester-btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .tester-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .tester-output {
+      margin-top: 14px;
+      padding: 14px;
+      background: #0b0f19;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-family: monospace;
+      font-size: 13px;
+      display: none;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-bar">
+        <span>🇫🇷 ➔ 🇬🇧</span>
+        <span>Interactive Extension Verification Page</span>
+      </div>
+      <h1>French Science & Math Dictionary</h1>
+      <p class="subtitle">
+        Highlight or select any French scientific word or phrase below to trigger the translation tooltip automatically.
+      </p>
+    </header>
+
+    <!-- Installation & Usage Guide -->
+    <div class="instruction-card">
+      <h3>🚀 How to Load & Test in Brave or Google Chrome:</h3>
+      <ol>
+        <li>Open <strong>brave://extensions</strong> or <strong>chrome://extensions</strong> in your browser.</li>
+        <li>Enable <strong>Developer mode</strong> (toggle switch in the top-right corner).</li>
+        <li>Click <strong>Load unpacked</strong>.</li>
+        <li>Select this project folder: <code>/Users/qhungbui7/workspace/french-science-dictionary</code></li>
+        <li>Open this HTML file in your browser, select any phrase below, and watch the precision translation appear immediately!</li>
+      </ol>
+      <div class="highlight-tip">
+        👉 Test Tip: Try selecting multi-word expressions like <span style="text-decoration: underline;">valeurs propres</span>, <span style="text-decoration: underline;">descente de gradient stochastique</span>, or false friends like <span style="text-decoration: underline;">corps</span>!
+      </div>
+    </div>
+
+    <!-- 1. Mathematics Excerpt -->
+    <h2 class="section-title">📐 1. Mathematics (Algèbre Linéaire & Analyse Fonctionnelle)</h2>
+    <div class="article-card">
+      <div class="article-meta">
+        <span class="tag tag-math">Mathématiques</span>
+        <span style="font-size: 12px; color: var(--text-muted);">Théorie Spectrale & Espaces Vectoriels</span>
+      </div>
+      <div class="article-title">Diagonalisation et Propriétés des Opérateurs Hermitiens</div>
+      <p>
+        <span class="sample-word">Soit</span> $E$ un <span class="sample-word">espace vectoriel</span> de dimension finie sur le <span class="sample-word">corps</span> des nombres réels $\mathbb{R}$. 
+        On s'intéresse à la recherche des <span class="sample-word">valeurs propres</span> et des <span class="sample-word">vecteurs propres</span> d'un <span class="sample-word">endomorphisme</span> auto-adjoint $u \in \mathcal{L}(E)$.
+      </p>
+      <p>
+        <span class="sample-word">Rappelons que</span> le <span class="sample-word">noyau</span> de l'application $(u - \lambda \mathrm{Id})$ définit le <span class="sample-word">sous-espace propre</span> associé à $\lambda$. 
+        Comme $u$ est hermitien, ses valeurs propres sont toutes réelles, et les sous-espaces propres associés à des valeurs propres distinctes sont orthogonaux pour le <span class="sample-word">produit scalaire</span>. 
+        <span class="sample-word">D'où</span> l'existence d'une <span class="sample-word">base orthonormée</span> de vecteurs propres.
+      </p>
+      <p>
+        En topologie générale, l'<span class="sample-word">adhérence</span> d'une partie bornée dans un <span class="sample-word">espace de Banach</span> permet de caractériser la <span class="sample-word">compacité</span> via le théorème de Riesz. 
+        Pour tout <span class="sample-word">recouvrement</span> d'ouverts d'un sous-ensemble compact, on peut extraire un sous-recouvrement fini. 
+        <span class="sample-word">D'après</span> le <span class="sample-word">théorème des gendarmes</span>, si une suite est encadrée par deux suites convergentes vers la même limite, elle converge également. <span class="sample-word">CQFD</span>.
+      </p>
+    </div>
+
+    <!-- 2. AI & Machine Learning Excerpt -->
+    <h2 class="section-title">🤖 2. Artificial Intelligence & Deep Learning</h2>
+    <div class="article-card">
+      <div class="article-meta">
+        <span class="tag tag-ai">Intelligence Artificielle</span>
+        <span style="font-size: 12px; color: var(--text-muted);">Optimisation & Modèles de Fondation</span>
+      </div>
+      <div class="article-title">Optimisation par Rétropropagation du Gradient</div>
+      <p>
+        Dans le cadre de l'<span class="sample-word">apprentissage automatique</span> et plus spécifiquement de l'<span class="sample-word">apprentissage profond</span>, 
+        l'entraînement des réseaux de neurones repose sur la <span class="sample-word">descente de gradient stochastique</span> avec un <span class="sample-word">taux d'apprentissage</span> adapté.
+      </p>
+      <p>
+        L'algorithme de <span class="sample-word">rétropropagation</span> calcule le gradient de la <span class="sample-word">fonction de perte</span> par rapport aux poids de chaque <span class="sample-word">couche cachée</span>.
+        Pour prévenir le phénomène de <span class="sample-word">surapprentissage</span>, on utilise des techniques de régularisation telles que l'<span class="sample-word">abandon</span> (dropout) ou la <span class="sample-word">validation croisée</span>.
+      </p>
+      <p>
+        L'architecture des <span class="sample-word">transformeurs</span> utilise un mécanisme d'<span class="sample-word">auto-attention</span> multi-têtes projetant les tokens dans un <span class="sample-word">plongement</span> vectoriel au sein d'un <span class="sample-word">espace latent</span> continu.
+      </p>
+    </div>
+
+    <!-- 3. Computer Science & Systems Excerpt -->
+    <h2 class="section-title">💻 3. Computer Science & Algorithms</h2>
+    <div class="article-card">
+      <div class="article-meta">
+        <span class="tag tag-cs">Informatique</span>
+        <span style="font-size: 12px; color: var(--text-muted);">Structures de Données & Systèmes Concurrents</span>
+      </div>
+      <div class="article-title">Gestion de la Concurrence et Complexité Algorithmique</div>
+      <p>
+        Lors de l'accès concurrent aux structures de données telles qu'une <span class="sample-word">table de hachage</span> ou un <span class="sample-word">arbre binaire de recherche</span>, 
+        l'<span class="sample-word">exclusion mutuelle</span> est requise pour éviter les conditions de course.
+      </p>
+      <p>
+        Cependant, une mauvaise hiérarchie dans l'acquisition des verrous peut provoquer un <span class="sample-word">interblocage</span> fatal.
+        En algorithmique, un <span class="sample-word">tas</span> binaire permet d'implémenter efficacement des files de priorité, avec une <span class="sample-word">complexité amortie</span> en temps optimal.
+      </p>
+    </div>
+
+    <!-- 4. Physics & Quantum Science Excerpt -->
+    <h2 class="section-title">🔬 4. Physics & Science</h2>
+    <div class="article-card">
+      <div class="article-meta">
+        <span class="tag tag-physics">Physique Quantique</span>
+        <span style="font-size: 12px; color: var(--text-muted);">Mécanique Ondulatoire</span>
+      </div>
+      <div class="article-title">Évolution Temporelle et États Stationnaires</div>
+      <p>
+        La dynamique d'une particule quantique est régie par l'<span class="sample-word">équation de Schrödinger</span>. 
+        La <span class="sample-word">fonction d'onde</span> $\psi(x, t)$ contient toute l'information sur le système. 
+        Selon le <span class="sample-word">principe d'incertitude</span> de Heisenberg, la position et l'impulsion ne peuvent être simultanément déterminées avec une précision arbitraire.
+      </p>
+      <p>
+        De plus, l'<span class="sample-word">intrication quantique</span> démontre le caractère non-local des corrélations quantiques, 
+        tandis que l'<span class="sample-word">effet tunnel</span> autorise une particule à franchir une barrière de potentiel supérieure à son énergie cinétique.
+      </p>
+    </div>
+
+    <!-- Standalone In-Page Interactive Tester -->
+    <div class="interactive-tester">
+      <h3 style="color:#ffffff; font-size:16px;">🧪 In-Page Direct Lexicon Tester</h3>
+      <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:8px;">
+        Test dictionary lookup logic directly in the browser console or through this interactive search bar:
+      </p>
+      <div class="tester-row">
+        <input type="text" id="demoInput" class="tester-input" placeholder="Type a French scientific term (e.g., corps, variété, valeur propre, adhérence)..." value="valeurs propres">
+        <button id="demoBtn" class="tester-btn">Lookup Term</button>
+      </div>
+      <div id="demoOutput" class="tester-output"></div>
+    </div>
+
+    <footer>
+      French Science & Math Dictionary • Open Source Precision Tool for Science & Technology
+    </footer>
+  </div>
+
+  <!-- Scripts for in-page testing -->
+  <script src="data/science_terms.js"></script>
+  <script src="data/academic_french.js"></script>
+  <script src="data/dictionary_core.js"></script>
+  <script src="content/content.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const demoInput = document.getElementById('demoInput');
+      const demoBtn = document.getElementById('demoBtn');
+      const demoOutput = document.getElementById('demoOutput');
+
+      function runDemo() {
+        const val = demoInput.value.trim();
+        if (!val || !window.FrenchScienceDict) return;
+
+        const result = window.FrenchScienceDict.lookup(val);
+        demoOutput.style.display = 'block';
+        if (result) {
+          demoOutput.innerHTML = `
+            <div style="color:#38bdf8; font-weight:bold; font-size:14px;">✓ Match Found:</div>
+            <div><strong>French:</strong> ${result.fr} (${result.category.toUpperCase()}) ${result.pos || ''}</div>
+            <div><strong>English:</strong> <span style="color:#34d399; font-weight:bold;">${result.en}</span></div>
+            ${result.note ? `<div style="color:#f43f5e; margin-top:4px;"><strong>Precision Warning:</strong> ${result.note}</div>` : ''}
+            ${result.definition ? `<div style="color:#94a3b8; margin-top:4px;"><strong>Definition:</strong> ${result.definition}</div>` : ''}
+          `;
+        } else {
+          demoOutput.innerHTML = `<span style="color:#f43f5e;">✗ No exact match for "${val}".</span>`;
+        }
+      }
+
+      demoBtn.addEventListener('click', runDemo);
+      demoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') runDemo();
+      });
+
+      // Run on page load with default value
+      runDemo();
+    });
+  </script>
+</body>
+</html>

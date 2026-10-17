@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>French Science Dictionary - Extension Preferences</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <header class="options-header">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="Logo" class="logo">
+        <div>
+          <h1>French Science & Math Dictionary</h1>
+          <p>Preferences & Behavior Settings</p>
+        </div>
+      </div>
+      <a href="https://github.com/qhungbui7/french-science-dictionary" target="_blank" class="github-link">
+        GitHub Repository ↗
+      </a>
+    </header>
+
+    <main class="options-main">
+      <!-- General Settings -->
+      <section class="settings-card">
+        <h2>Highlight Translation Settings</h2>
+        
+        <div class="option-row">
+          <div class="option-desc">
+            <strong>Enable Automatic Translation</strong>
+            <p>Automatically triggers translation when you highlight text on any webpage.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="optAutoTranslate" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="option-row">
+          <div class="option-desc">
+            <strong>Trigger Mode</strong>
+            <p>Choose when the translation card appears after selecting text.</p>
+          </div>
+          <select id="optTriggerMode" class="styled-select">
+            <option value="instant">Instant Popover (Default - pops up immediately on mouse release)</option>
+            <option value="icon">Show Floating Icon near selection (click icon to translate)</option>
+            <option value="alt">Hold Alt / Option Key while selecting</option>
+          </select>
+        </div>
+
+        <div class="option-row">
+          <div class="option-desc">
+            <strong>Auto Pronounce Term</strong>
+            <p>Automatically pronounce the French term using Web Speech API upon translation.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="optAutoPronounce">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="option-row">
+          <div class="option-desc">
+            <strong>Online Fallback Translation</strong>
+            <p>If an ultra-rare word is not in the offline database, query the online scientific translation service.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="optOnlineFallback" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Data Management -->
+      <section class="settings-card">
+        <h2>Data & Cache Management</h2>
+        
+        <div class="option-row">
+          <div class="option-desc">
+            <strong>Search & Highlight History</strong>
+            <p>Clear all recorded search and highlight translations stored locally.</p>
+          </div>
+          <button class="danger-btn" id="optClearHistoryBtn">Clear History</button>
+        </div>
+
+        <div class="option-row">
+          <div class="option-desc">
+            <strong>Saved Favorites</strong>
+            <p>Delete all bookmarked terms from your local extension storage.</p>
+          </div>
+          <button class="danger-btn" id="optClearFavsBtn">Clear Favorites</button>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section class="settings-card about-section">
+        <h2>About & Scientific Precision</h2>
+        <p>
+          This extension focuses on the highest standard of precision for French mathematics, artificial intelligence, computer science, and physics terminology. 
+          It distinguishes crucial scientific nuances such as <em>corps</em> (field vs. body), <em>variété</em> (manifold vs. variety), <em>adhérence</em> (closure vs. adherence), and <em>noyau</em> (kernel vs. nucleus).
+        </p>
+        <div class="version-info">
+          <span>Extension Version: <strong>1.0.0</strong></span>
+          <span>Manifest Version: <strong>V3</strong></span>
+          <span>Target Browsers: <strong>Brave, Google Chrome, Chromium</strong></span>
+        </div>
+      </section>
+    </main>
+
+    <div id="saveToast" class="save-toast">Settings saved successfully</div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

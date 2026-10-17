@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>French Science Dictionary</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand">
+        <img src="../icons/icon32.png" alt="Logo" class="brand-logo">
+        <div class="brand-text">
+          <h1>French Science Lexicon</h1>
+          <span class="subtext">Precision Math • AI • CS • Physics</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="terms-count-badge" id="termsCountBadge">... terms</span>
+      </div>
+    </header>
+
+    <!-- Nav Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="search">
+        <span class="tab-icon">🔍</span>
+        <span class="tab-label">Search</span>
+      </button>
+      <button class="nav-tab" data-tab="favorites">
+        <span class="tab-icon">★</span>
+        <span class="tab-label">Saved</span>
+      </button>
+      <button class="nav-tab" data-tab="history">
+        <span class="tab-icon">🕒</span>
+        <span class="tab-label">History</span>
+      </button>
+      <button class="nav-tab" data-tab="cheatsheet">
+        <span class="tab-icon">⚡</span>
+        <span class="tab-label">False Friends</span>
+      </button>
+      <button class="nav-tab" data-tab="settings">
+        <span class="tab-icon">⚙️</span>
+        <span class="tab-label">Settings</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="tab-content-container">
+      
+      <!-- ================= SEARCH TAB ================= -->
+      <section id="tab-search" class="tab-pane active">
+        <!-- Search Input -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search French or English term..." autocomplete="off" spellcheck="false" autofocus>
+          <button id="clearSearchBtn" class="clear-btn" title="Clear">✕</button>
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div class="filter-pills" id="categoryFilter">
+          <button class="filter-pill active" data-cat="all">All</button>
+          <button class="filter-pill" data-cat="math">📐 Math</button>
+          <button class="filter-pill" data-cat="ai">🤖 AI & ML</button>
+          <button class="filter-pill" data-cat="cs">💻 CS</button>
+          <button class="filter-pill" data-cat="science">🔬 Physics</button>
+          <button class="filter-pill" data-cat="general">📖 Academic</button>
+        </div>
+
+        <!-- Featured Daily Concept -->
+        <div class="daily-concept-card" id="dailyCard">
+          <div class="daily-label">
+            <span>✨ SCIENTIFIC CONCEPT OF THE DAY</span>
+            <span class="badge" id="dailyBadge">Math</span>
+          </div>
+          <div class="daily-term-row">
+            <h3 id="dailyFr">Valeur propre</h3>
+            <button class="icon-action-btn" id="dailyAudioBtn" title="Listen in French">🔊</button>
+          </div>
+          <div class="daily-en" id="dailyEn">eigenvalue</div>
+          <p class="daily-def" id="dailyDef">A scalar λ such that T(v) = λv for a non-zero vector v.</p>
+          <div class="daily-note" id="dailyNote"></div>
+        </div>
+
+        <!-- Search Results List -->
+        <div class="results-header" id="resultsHeader" style="display: none;">
+          <span id="resultsCount">0 terms found</span>
+        </div>
+        <div class="results-list" id="resultsList">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================= FAVORITES TAB ================= -->
+      <section id="tab-favorites" class="tab-pane">
+        <div class="pane-header">
+          <h2>Bookmarked Terms</h2>
+          <div class="export-actions">
+            <button class="secondary-btn" id="exportAnkiBtn" title="Export as Anki Flashcards">🗂️ Anki (.txt)</button>
+            <button class="secondary-btn" id="exportCsvBtn" title="Export as CSV">📊 CSV</button>
+          </div>
+        </div>
+        <div class="items-list" id="favoritesList">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- ================= HISTORY TAB ================= -->
+      <section id="tab-history" class="tab-pane">
+        <div class="pane-header">
+          <h2>Recent Highlights</h2>
+          <button class="danger-btn" id="clearHistoryBtn">Clear History</button>
+        </div>
+        <div class="items-list" id="historyList">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- ================= FALSE FRIENDS CHEATSHEET TAB ================= -->
+      <section id="tab-cheatsheet" class="tab-pane">
+        <div class="cheatsheet-header">
+          <h2>Les Faux-Amis des Sciences</h2>
+          <p>Critical scientific terms that are commonly mistranslated by generic tools.</p>
+        </div>
+        <div class="cheatsheet-grid" id="cheatsheetGrid">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- ================= SETTINGS TAB ================= -->
+      <section id="tab-settings" class="tab-pane">
+        <div class="settings-group">
+          <h3>Highlight Translation</h3>
+          
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Auto-Translate on Highlight</span>
+              <span class="setting-desc">Automatically display translation card when selecting text on any webpage.</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingAutoTranslate" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Trigger Mode</span>
+              <span class="setting-desc">How translation is triggered upon selection.</span>
+            </div>
+            <select id="settingTriggerMode" class="styled-select">
+              <option value="instant">Instant Popover (Fastest)</option>
+              <option value="icon">Show Floating Icon near cursor</option>
+              <option value="alt">Hold Alt / Option Key + Select</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Audio Pronunciation</span>
+              <span class="setting-desc">Auto-pronounce French term using browser speech synthesis.</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingAutoPronounce">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Online Fallback</span>
+              <span class="setting-desc">Query scientific online dictionary when a rare term is not in the offline database.</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingOnlineFallback" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>About & Repository</h3>
+          <div class="about-card">
+            <p><strong>French Science Dictionary</strong> is an open-source precision bilingual tool for researchers, mathematicians, and engineers.</p>
+            <div class="repo-links">
+              <a href="https://github.com/qhungbui7/french-science-dictionary" target="_blank" class="github-link">
+                GitHub Repository ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../data/science_terms.js"></script>
+  <script src="../data/academic_french.js"></script>
+  <script src="../data/dictionary_core.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
