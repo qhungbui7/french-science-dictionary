@@ -987,6 +987,17 @@ const SCIENCE_TERMS = [
   // PHYSICS & GENERAL SCIENCE
   // ==========================================
   {
+    fr: "onde",
+    en: "wave",
+    category: "science",
+    subcategories: ["physics", "waves"],
+    pos: "n.f.",
+    definition: "A propagating dynamic disturbance (change from equilibrium) of one or more physical quantities.",
+    examples: [
+      { fr: "Une onde électromagnétique se propage dans le vide à la vitesse de la lumière.", en: "An electromagnetic wave propagates in a vacuum at the speed of light." }
+    ]
+  },
+  {
     fr: "fonction d'onde",
     en: "wave function",
     category: "science",

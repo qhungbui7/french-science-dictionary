@@ -676,6 +676,15 @@
         // English reverse index
         const enLower = entry.en.toLowerCase().trim();
         this.enToFrMap.set(enLower, entry);
+        
+        // Split by / or ; or , to index individual translation alternatives
+        const enParts = entry.en.split(/[\/,;()]+/).map(p => p.trim().toLowerCase()).filter(p => p.length >= 2);
+        for (const part of enParts) {
+          if (!this.enToFrMap.has(part)) {
+            this.enToFrMap.set(part, entry);
+          }
+        }
+
         if (entry.alt) {
           for (const a of entry.alt) {
             this.enToFrMap.set(a.toLowerCase().trim(), entry);
@@ -725,7 +734,15 @@
         }
       }
 
-      // 4. Multi-word sub-phrase match:
+      // 4. Exact English to French reverse lookup (prioritized over loose sub-phrase matching)
+      if (this.enToFrMap.has(lower)) {
+        return this.enToFrMap.get(lower);
+      }
+      if (this.enToFrMap.has(norm)) {
+        return this.enToFrMap.get(norm);
+      }
+
+      // 5. Multi-word sub-phrase match:
       // If user highlighted a sentence or phrase like "l'espace vectoriel normé de dimension infinie"
       // find the most prominent scientific term contained inside it
       const normInput = ' ' + norm + ' ';
@@ -734,14 +751,6 @@
         if (entryNorm.length >= 3 && normInput.includes(' ' + entryNorm + ' ')) {
           return entry;
         }
-      }
-
-      // 5. English to French reverse lookup
-      if (this.enToFrMap.has(lower)) {
-        return this.enToFrMap.get(lower);
-      }
-      if (this.enToFrMap.has(norm)) {
-        return this.enToFrMap.get(norm);
       }
 
       return null;

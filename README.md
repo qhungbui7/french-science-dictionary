@@ -35,6 +35,15 @@ Unlike generic translation tools that confuse false friends, this extension focu
 
 ---
 
+## 📖 Domain Expert Audit & Peer Review
+
+For mathematicians, researchers, and technical auditors conducting peer review or security analysis:
+- 📑 **[Domain Expert Audit Guide](docs/DOMAIN_EXPERT_AUDIT_GUIDE.md)**: In-depth axiomatic analyses, discipline-by-discipline translation rationale, morphological stemming formalisms, and Manifest V3 security audit.
+- 📐 **[Lexicon Specification](docs/LEXICON_SPECIFICATION.md)**: Full database schema and tabular reference of all cataloged terms with academic literature citations (*Bourbaki, Laurent Schwartz, LeCun, Cormen*).
+- 🧪 **Automated Test Suite**: Run `npm test` to execute the 95-point automated verification and regression test suite.
+
+---
+
 ## 🚀 Installation Guide
 
 ### Brave Browser & Google Chrome

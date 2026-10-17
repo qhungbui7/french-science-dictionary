@@ -1,0 +1,32 @@
+{
+  "name": "french-science-dictionary",
+  "version": "1.0.0",
+  "description": "Precision bilingual French-to-English scientific dictionary extension for Brave and Google Chrome.",
+  "main": "data/dictionary_core.js",
+  "scripts": {
+    "test": "node tests/engine_test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qhungbui7/french-science-dictionary.git"
+  },
+  "keywords": [
+    "french",
+    "dictionary",
+    "chrome-extension",
+    "brave-browser",
+    "mathematics",
+    "machine-learning",
+    "deep-learning",
+    "computer-science",
+    "physics",
+    "translation",
+    "manifest-v3"
+  ],
+  "author": "Quang Hung Bui",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/qhungbui7/french-science-dictionary/issues"
+  },
+  "homepage": "https://github.com/qhungbui7/french-science-dictionary#readme"
+}
