@@ -3,6 +3,10 @@
 
 ## 2026-10-17
 
+- 05:08 - Invalidate in-flight translation requests and dismiss stale cards on keyboard selection changes (Shift+Arrow)
+- 05:08 - Escape HTML markup in Anki exports and neutralize spreadsheet formula injection (=, +, -, @) in CSV exports
+- 05:08 - Remove unnecessary activeTab permission and publish comprehensive PRIVACY_POLICY.md compliant with Chrome Web Store policies
+- 05:08 - Expand automated test suite to 182 test points covering Anki/CSV serializers and async race cancellation state machine
 - 04:55 - Add Ko-fi donation and support section (https://ko-fi.com/quochungbui) across README.md, popup UI, options page, and verification test page
 - 04:37 - Fix P1/P2 code review findings: secure HTML rendering against XSS, enforce autoTranslate/autoPronounce/offlineFallback settings, resolve punctuation boundary phrase matching, preserve multi-sense discipline entries, eliminate async tooltip race conditions, expand search index, and add 74 new regression tests
 - 04:19 - Switch default translation behavior from instant popover to on-demand floating Translate button

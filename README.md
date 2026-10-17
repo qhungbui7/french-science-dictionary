@@ -39,7 +39,7 @@ Unlike generic translation tools that confuse false friends, this extension focu
   - Discipline filter pills: **📐 Mathematics**, **🤖 AI & Machine Learning**, **💻 Computer Science**, **🔬 Physics & Science**, and **📖 Academic French**.
   - **Scientific Concept of the Day** to discover mathematical definitions daily.
 - **🗂️ Anki & CSV Export**: Bookmark terms with a star (★) and export them directly to an **Anki Flashcard Deck (`.txt`)** or CSV for spaced repetition review!
-- **🌐 Offline-First with Enforced Privacy**: Zero-latency offline database for core STEM terms. When online fallback is disabled in settings, external network calls are strictly blocked across both selection and context-menu workflows.
+- **🌐 Offline-First with Enforced Privacy**: Zero-latency offline database for core STEM terms. When online fallback is disabled in settings, external network calls are strictly blocked across both selection and context-menu workflows. Read our complete [Privacy Policy](PRIVACY_POLICY.md).
 
 ---
 
@@ -48,6 +48,7 @@ Unlike generic translation tools that confuse false friends, this extension focu
 For mathematicians, researchers, and technical auditors conducting peer review or security analysis:
 - 📑 **[Domain Expert Audit Guide](docs/DOMAIN_EXPERT_AUDIT_GUIDE.md)**: In-depth axiomatic analyses, discipline-by-discipline translation rationale, morphological stemming formalisms, and Manifest V3 security audit.
 - 📐 **[Lexicon Specification](docs/LEXICON_SPECIFICATION.md)**: Full database schema, provenance citations (*Bourbaki, Laurent Schwartz, LeCun, Cormen, Rudin*), and tabular reference of cataloged terms.
+- 🔒 **[Privacy Policy](PRIVACY_POLICY.md)**: Full disclosure of local storage invariants, zero-telemetry architecture, MyMemory API fallback conditions, and opt-out controls.
 - 🧪 **Automated Test Suite**: Run `npm test` to execute the comprehensive automated verification and regression test suite.
 
 ---
@@ -122,7 +123,7 @@ Click the extension icon or right-click to open **Options**:
   - `Instant Popover`: Appears immediately on text selection.
   - `Alt / Option Key`: Only translates when holding `Alt` while selecting.
 - **Auto-Pronounce**: Automatically speak the French pronunciation upon displaying the translation card.
-- **Online Fallback**: Query online scientific translation service when an uncataloged word is selected (strictly respects off toggle).
+- **Online Fallback**: Query MyMemory Translated API when an uncataloged word is selected (strictly blocks all external network calls when toggled off per our [Privacy Policy](PRIVACY_POLICY.md)).
 
 ---
 

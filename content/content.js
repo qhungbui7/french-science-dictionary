@@ -531,6 +531,9 @@
       return;
     }
 
+    // Invalidate any outstanding asynchronous requests whenever selection changes or is evaluated
+    currentRequestId++;
+
     // Enforce settings.autoTranslate: if disabled, do not trigger any selection translation
     if (!settings.autoTranslate) {
       hideCard();
@@ -563,6 +566,15 @@
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return;
+
+    // If selection changed from previously active selection, dismiss any currently visible card
+    if (activeSelectionText !== selectedText) {
+      if (cardElement) {
+        cardElement.classList.remove('fsd-visible');
+        cardElement.remove();
+        cardElement = null;
+      }
+    }
 
     activeSelectionText = selectedText;
 
@@ -598,9 +610,17 @@
       hideCard();
       return;
     }
-    // Handle shift+arrows selection
-    if (e.shiftKey) {
-      setTimeout(() => handleTextSelection(e), 100);
+    // Handle shift+arrows and arrow selection navigation
+    if (e.shiftKey || ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      setTimeout(() => handleTextSelection(e), 60);
+    }
+  });
+
+  // Track selection collapse to invalidate pending async requests
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) {
+      currentRequestId++;
     }
   });
 

@@ -27,17 +27,23 @@ interface ScienceTermEntry {
   pos?: string;            // Part of speech (e.g., 'n.m.', 'n.f.', 'adj.', 'v.', 'loc. adv.')
   definition?: string;     // Rigorous English scientific definition
   note?: string;           // Domain caveat / false friend warning
-  source?: string;         // Primary bibliographic or textbook source citation
+  source?: string;         // Primary bibliographic or textbook source citation (e.g., Bourbaki, Schwartz, Serre)
   senses?: ScienceTermSense[]; // Explicit multi-sense taxonomy across disciplines
   examples?: {
-    fr: string;            // Authentic excerpt from French literature/textbooks
+    fr: string;            // French usage sentence
     en: string;            // Accurate corresponding English translation
-    source?: string;       // Bibliographic reference or page citation for authentic example
+    source?: string;       // Bibliographic reference or page citation
+    type?: 'citation' | 'illustrative'; // 'citation' = verbatim literature excerpt; 'illustrative' = standardized pedagogical sentence
   }[];
   synonyms?: string[];     // French synonyms or alternate orthographies
   antonyms?: string[];     // Direct conceptual opposites (e.g., ouvert <-> fermé)
 }
 ```
+
+### Provenance Classification Standards:
+- **Canonical Terminology Source (`entry.source`)**: Bibliographic attribution specifying the treatise, monograph, or textbook establishing the canonical French-to-English terminological correspondence (e.g. *Bourbaki Algèbre*, *Schwartz Topologie*, *Hartshorne Algebraic Geometry*).
+- **Verbatim Excerpts (`type: 'citation'`)**: Literal, authentic sentences quoted directly from cited French mathematical monographs, textbooks, or journal articles.
+- **Pedagogical Sentences (`type: 'illustrative'`)**: Standardized illustrative examples constructed to demonstrate correct grammatical agreement, prepositional usage (e.g., *converger vers*, *tendre vers*, *s'annuler en*), and mathematical phrasing commonly encountered in university lecture notes.
 
 ---
 

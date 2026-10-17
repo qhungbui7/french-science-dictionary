@@ -1,25 +1,72 @@
-/**
- * French Science Dictionary - Popup Logic
- */
+// HTML Sanitization utility to prevent DOM XSS injection
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
-document.addEventListener('DOMContentLoaded', () => {
-  const dict = window.FrenchScienceDict;
-  let currentCategory = 'all';
+// Sanitize field for TSV / Anki (escape HTML, strip tabs/newlines)
+function sanitizeAnkiField(text) {
+  if (!text) return '';
+  return escapeHTML(String(text))
+    .replace(/[\t\r\n]/g, ' ')
+    .trim();
+}
 
-  // HTML Sanitization utility to prevent DOM XSS injection
-  function escapeHTML(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+// Format Anki deck with strict escaping while preserving card bolding
+function formatAnkiDeck(favorites) {
+  let textContent = "#separator:tab\n#html:true\n#deck:French Science Dictionary\n";
+  favorites.forEach(f => {
+    const frSafe = sanitizeAnkiField(f.fr);
+    const enSafe = sanitizeAnkiField(f.en);
+    const catSafe = sanitizeAnkiField(f.category);
+    textContent += `${frSafe}\t<b>${enSafe}</b> [${catSafe}]\n`;
+  });
+  return textContent;
+}
+
+// Sanitize cell for CSV and neutralize spreadsheet formula injection (=, +, -, @)
+function sanitizeCsvCell(value) {
+  if (value === null || value === undefined) return '""';
+  let str = String(value).replace(/\r\n/g, ' ').replace(/[\r\n]/g, ' ').trim();
+  // Formula injection mitigation: if cell begins with formula trigger character
+  if (/^[=\+\-@\t\r]/.test(str)) {
+    str = "'" + str;
   }
+  return `"${str.replace(/"/g, '""')}"`;
+}
 
-  // DOM Elements
-  const termsCountBadge = document.getElementById('termsCountBadge');
-  const searchInput = document.getElementById('searchInput');
+// Format CSV export with formula injection mitigation and RFC 4180 quoting
+function formatCsvExport(favorites) {
+  let csv = 'French,English,Category\n';
+  favorites.forEach(f => {
+    csv += `${sanitizeCsvCell(f.fr)},${sanitizeCsvCell(f.en)},${sanitizeCsvCell(f.category)}\n`;
+  });
+  return csv;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    escapeHTML,
+    sanitizeAnkiField,
+    formatAnkiDeck,
+    sanitizeCsvCell,
+    formatCsvExport
+  };
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const dict = window.FrenchScienceDict;
+    let currentCategory = 'all';
+
+    // DOM Elements
+    const termsCountBadge = document.getElementById('termsCountBadge');
+    const searchInput = document.getElementById('searchInput');
   const clearSearchBtn = document.getElementById('clearSearchBtn');
   const categoryPills = document.querySelectorAll('.filter-pill');
   const dailyCard = document.getElementById('dailyCard');
@@ -293,12 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Format tab-separated for Anki import: French \t English \t Category
-      let textContent = "#separator:tab\n#html:true\n#deck:French Science Dictionary\n";
-      favs.forEach(f => {
-        textContent += `${f.fr}\t<b>${f.en}</b> [${f.category}]\n`;
-      });
-
+      const textContent = formatAnkiDeck(favs);
       downloadFile(textContent, 'french_science_anki_deck.txt', 'text/plain');
       showToast('Exported Anki deck!');
     });
@@ -315,11 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      let csv = 'French,English,Category\n';
-      favs.forEach(f => {
-        csv += `"${f.fr.replace(/"/g, '""')}","${f.en.replace(/"/g, '""')}","${f.category}"\n`;
-      });
-
+      const csv = formatCsvExport(favs);
       downloadFile(csv, 'french_science_lexicon.csv', 'text/csv');
       showToast('Exported CSV!');
     });
@@ -505,4 +543,5 @@ document.addEventListener('DOMContentLoaded', () => {
   settingOnlineFallback.addEventListener('change', saveSettings);
 
   loadSettings();
-});
+  });
+}

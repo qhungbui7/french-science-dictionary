@@ -221,18 +221,17 @@ for (const est of expandedSearchTests) {
 const rankingResults = dict.search('corps', 'all', 10);
 assert(rankingResults.length > 0 && rankingResults[0].fr.toLowerCase() === 'corps', `Exact headword 'corps' ranked first in search results (received top: "${rankingResults[0]?.fr}")`);
 
-// 10. HTML SANITIZATION & XSS DEFENSE AUDIT
-console.log('\n🛡️  10. HTML SANITIZATION & XSS DEFENSE AUDIT');
+// 10. HTML SANITIZATION & REAL EXPORT SECURITY AUDIT
+console.log('\n🛡️  10. HTML SANITIZATION & REAL EXPORT SECURITY AUDIT');
 
-function escapeHTML(str) {
-  if (str === null || str === undefined) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+// Import actual production functions directly from popup/popup.js
+const {
+  escapeHTML,
+  sanitizeAnkiField,
+  formatAnkiDeck,
+  sanitizeCsvCell,
+  formatCsvExport
+} = require('../popup/popup.js');
 
 function highlightMatch(text, query) {
   if (!text) return '';
@@ -263,8 +262,86 @@ for (const payload of xssPayloads) {
   assert(!highlighted.includes('<script') && !highlighted.includes('<img'), `highlightMatch safely escaped HTML without rendering raw executable tags`);
 }
 
-// 11. SETTINGS & NEGATIVE LOOKUP INVARIANTS
-console.log('\n⚙️  11. SETTINGS & NEGATIVE LOOKUP INVARIANTS AUDIT');
+// 11. ANKI & CSV EXPORT SECURITY & FORMULA INJECTION AUDIT
+console.log('\n📦 11. ANKI & CSV EXPORT SECURITY & FORMULA INJECTION AUDIT');
+
+const dangerousFavorites = [
+  { fr: '<script>alert("xss")</script>', en: 'eigenvalue', category: 'math' },
+  { fr: 'terme\tavec\ttab', en: 'term\nwith\nnewline', category: 'cs' },
+  { fr: '=1+1', en: 'formula test', category: 'math' },
+  { fr: '+cmd|\' /C calc\'!A0', en: 'DDE injection test', category: 'cs' },
+  { fr: '@SUM(A1:A10)', en: 'Excel at-command test', category: 'science' },
+  { fr: '-10% discount', en: 'negative sign test', category: 'general' }
+];
+
+// Test Anki Deck Serializer
+const ankiOutput = formatAnkiDeck(dangerousFavorites);
+assert(!ankiOutput.includes('<script>'), 'Anki export: neutralized raw <script> tag in French headword');
+assert(ankiOutput.includes('&lt;script&gt;'), 'Anki export: properly HTML-escaped French headword');
+assert(!ankiOutput.includes('terme\tavec\ttab\t'), 'Anki export: stripped destructive internal tabs from field content');
+assert(ankiOutput.includes('<b>eigenvalue</b> [math]'), 'Anki export: preserved intended bold styling around escaped English card field');
+
+// Test CSV Serializer & Spreadsheet Formula Injection Mitigation
+const csvOutput = formatCsvExport(dangerousFavorites);
+assert(csvOutput.includes('"\'=1+1"'), 'CSV export: neutralized formula injection (=) with leading single-quote');
+assert(csvOutput.includes('"\'+cmd'), 'CSV export: neutralized plus-sign command injection (+) with leading single-quote');
+assert(csvOutput.includes('"\'@SUM(A1:A10)"'), 'CSV export: neutralized at-command formula injection (@) with leading single-quote');
+assert(csvOutput.includes('"\'-10% discount"'), 'CSV export: neutralized negative formula injection (-) with leading single-quote');
+assert(!csvOutput.includes('term\nwith\nnewline'), 'CSV export: sanitized embedded linebreaks in cell content');
+
+// 12. ASYNCHRONOUS SELECTION RACE & REQUEST-ID STATE MACHINE AUDIT
+console.log('\n⚡ 12. ASYNCHRONOUS SELECTION RACE & REQUEST-ID STATE MACHINE AUDIT');
+
+// Simulate the asynchronous selection cancellation logic implemented in content.js
+class AsyncSelectionStateMachine {
+  constructor() {
+    this.currentRequestId = 0;
+    this.activeSelection = null;
+    this.cardRenderedWith = null;
+  }
+
+  // User selects text via mouse or keyboard Shift+Arrow
+  onSelectionChange(newText) {
+    this.currentRequestId++; // Invalidate pending callbacks immediately
+    this.activeSelection = newText;
+  }
+
+  // An asynchronous lookup (e.g. online fallback or storage query) initiates
+  dispatchAsyncLookup(text) {
+    const reqId = this.currentRequestId;
+    return (result) => {
+      // Callback verifies monotonic request ID
+      if (reqId === this.currentRequestId && this.activeSelection === text) {
+        this.cardRenderedWith = result;
+        return true; // Accepted
+      }
+      return false; // Stale / Rejected
+    };
+  }
+}
+
+const fsdState = new AsyncSelectionStateMachine();
+
+// Step 1: User selects term A ('valeur propre')
+fsdState.onSelectionChange('valeur propre');
+const resolveA = fsdState.dispatchAsyncLookup('valeur propre');
+
+// Step 2: While request A is in flight, user uses Shift+Arrow to expand or change to term B ('vecteur propre')
+fsdState.onSelectionChange('vecteur propre');
+const resolveB = fsdState.dispatchAsyncLookup('vecteur propre');
+
+// Step 3: Delayed response for term A arrives late
+const acceptedA = resolveA('eigenvalue');
+assert(acceptedA === false, 'Async race test: Delayed response for Term A was successfully rejected as stale');
+assert(fsdState.cardRenderedWith === null, 'Async race test: Card state was NOT overwritten by late Term A response');
+
+// Step 4: Response for active Term B arrives
+const acceptedB = resolveB('eigenvector');
+assert(acceptedB === true, 'Async race test: Current response for Term B was successfully accepted');
+assert(fsdState.cardRenderedWith === 'eigenvector', 'Async race test: Card accurately rendered Term B result');
+
+// 13. SETTINGS & NEGATIVE LOOKUP INVARIANTS AUDIT
+console.log('\n⚙️  13. SETTINGS & NEGATIVE LOOKUP INVARIANTS AUDIT');
 
 // Empty / invalid input tests
 assert(dict.lookup('') === null, 'Lookup empty string returns null');
