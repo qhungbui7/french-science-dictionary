@@ -17,8 +17,25 @@
   let triggerIconElement = null;
   let activeEntry = null;
   let activeSelectionText = '';
+  let lastSelectionSignature = '';
   let isBookmarked = false;
   let currentRequestId = 0; // Monotonically increasing request counter to eliminate race conditions
+
+  function getSelectionSignature(sel) {
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) return '';
+    try {
+      const text = sel.toString().trim();
+      if (!text) return '';
+      const range = sel.getRangeAt(0);
+      const startNode = range.startContainer;
+      const endNode = range.endContainer;
+      const startTag = startNode ? (startNode.nodeType === 3 ? (startNode.parentNode?.tagName || 'TEXT') : (startNode.tagName || 'NODE')) : '';
+      const endTag = endNode ? (endNode.nodeType === 3 ? (endNode.parentNode?.tagName || 'TEXT') : (endNode.tagName || 'NODE')) : '';
+      return `${text}|${startTag}:${range.startOffset}|${endTag}:${range.endOffset}`;
+    } catch (e) {
+      return (sel && !sel.isCollapsed) ? sel.toString().trim() : '';
+    }
+  }
 
   // Default User Settings
   let settings = {
@@ -577,6 +594,7 @@
     }
 
     activeSelectionText = selectedText;
+    lastSelectionSignature = getSelectionSignature(selection);
 
     // Perform offline dictionary lookup
     const entry = window.FrenchScienceDict ? window.FrenchScienceDict.lookup(selectedText) : null;
@@ -616,11 +634,27 @@
     }
   });
 
-  // Track selection collapse to invalidate pending async requests
+  // Track selection changes to IMMEDIATELY invalidate pending async requests (even between two non-collapsed selections)
   document.addEventListener('selectionchange', () => {
     const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) {
+    const sig = getSelectionSignature(sel);
+    if (sig !== lastSelectionSignature) {
+      // Invalidate ANY pending asynchronous requests synchronously and immediately
       currentRequestId++;
+      lastSelectionSignature = sig;
+
+      // If selection collapsed or cleared, dismiss card and button
+      if (!sig) {
+        hideCard();
+      } else if (activeSelectionText && !sig.startsWith(activeSelectionText + '|')) {
+        // Selection transitioned to a different non-collapsed text: dismiss stale card/button immediately
+        if (cardElement) {
+          cardElement.classList.remove('fsd-visible');
+          cardElement.remove();
+          cardElement = null;
+        }
+        hideTriggerButton();
+      }
     }
   });
 
@@ -653,6 +687,23 @@
         }
       }
     });
+  }
+
+  // Testing hooks for browser-level and simulated environment regression testing
+  if (typeof window !== 'undefined') {
+    window.__FSD_CONTENT_SCRIPT__ = {
+      getCurrentRequestId: () => currentRequestId,
+      getActiveSelectionText: () => activeSelectionText,
+      getLastSelectionSignature: () => lastSelectionSignature,
+      getCardElement: () => cardElement,
+      getTriggerIconElement: () => triggerIconElement,
+      getSettings: () => settings,
+      setSettings: (newSettings) => { settings = Object.assign(settings, newSettings); },
+      handleTextSelection,
+      fetchOnlineTranslation,
+      showCard,
+      hideCard
+    };
   }
 
 })();

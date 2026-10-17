@@ -3,6 +3,8 @@
 
 ## 2026-10-17
 
+- 05:17 - Invalidate pending async requests immediately upon browser selectionchange between non-collapsed selections (closing the Shift+Arrow race interval)
+- 05:17 - Add real content script browser-level regression test resolving translation responses during debounce interval (expanded test suite to 188 assertions)
 - 05:08 - Invalidate in-flight translation requests and dismiss stale cards on keyboard selection changes (Shift+Arrow)
 - 05:08 - Escape HTML markup in Anki exports and neutralize spreadsheet formula injection (=, +, -, @) in CSV exports
 - 05:08 - Remove unnecessary activeTab permission and publish comprehensive PRIVACY_POLICY.md compliant with Chrome Web Store policies

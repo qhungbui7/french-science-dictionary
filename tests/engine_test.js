@@ -289,10 +289,10 @@ assert(csvOutput.includes('"\'@SUM(A1:A10)"'), 'CSV export: neutralized at-comma
 assert(csvOutput.includes('"\'-10% discount"'), 'CSV export: neutralized negative formula injection (-) with leading single-quote');
 assert(!csvOutput.includes('term\nwith\nnewline'), 'CSV export: sanitized embedded linebreaks in cell content');
 
-// 12. ASYNCHRONOUS SELECTION RACE & REQUEST-ID STATE MACHINE AUDIT
-console.log('\n⚡ 12. ASYNCHRONOUS SELECTION RACE & REQUEST-ID STATE MACHINE AUDIT');
+// 12. ASYNCHRONOUS SELECTION RACE & REAL CONTENT SCRIPT BROWSER AUDIT
+console.log('\n⚡ 12. ASYNCHRONOUS SELECTION RACE & REAL CONTENT SCRIPT BROWSER AUDIT');
 
-// Simulate the asynchronous selection cancellation logic implemented in content.js
+// Part A: State-machine invariant check
 class AsyncSelectionStateMachine {
   constructor() {
     this.currentRequestId = 0;
@@ -300,45 +300,201 @@ class AsyncSelectionStateMachine {
     this.cardRenderedWith = null;
   }
 
-  // User selects text via mouse or keyboard Shift+Arrow
   onSelectionChange(newText) {
-    this.currentRequestId++; // Invalidate pending callbacks immediately
+    this.currentRequestId++;
     this.activeSelection = newText;
   }
 
-  // An asynchronous lookup (e.g. online fallback or storage query) initiates
   dispatchAsyncLookup(text) {
     const reqId = this.currentRequestId;
     return (result) => {
-      // Callback verifies monotonic request ID
       if (reqId === this.currentRequestId && this.activeSelection === text) {
         this.cardRenderedWith = result;
-        return true; // Accepted
+        return true;
       }
-      return false; // Stale / Rejected
+      return false;
     };
   }
 }
 
 const fsdState = new AsyncSelectionStateMachine();
-
-// Step 1: User selects term A ('valeur propre')
 fsdState.onSelectionChange('valeur propre');
 const resolveA = fsdState.dispatchAsyncLookup('valeur propre');
-
-// Step 2: While request A is in flight, user uses Shift+Arrow to expand or change to term B ('vecteur propre')
 fsdState.onSelectionChange('vecteur propre');
 const resolveB = fsdState.dispatchAsyncLookup('vecteur propre');
 
-// Step 3: Delayed response for term A arrives late
 const acceptedA = resolveA('eigenvalue');
-assert(acceptedA === false, 'Async race test: Delayed response for Term A was successfully rejected as stale');
-assert(fsdState.cardRenderedWith === null, 'Async race test: Card state was NOT overwritten by late Term A response');
+assert(acceptedA === false, 'State machine: Delayed response for Term A was successfully rejected as stale');
+assert(fsdState.cardRenderedWith === null, 'State machine: Card state was NOT overwritten by late Term A response');
 
-// Step 4: Response for active Term B arrives
 const acceptedB = resolveB('eigenvector');
-assert(acceptedB === true, 'Async race test: Current response for Term B was successfully accepted');
-assert(fsdState.cardRenderedWith === 'eigenvector', 'Async race test: Card accurately rendered Term B result');
+assert(acceptedB === true, 'State machine: Current response for Term B was successfully accepted');
+assert(fsdState.cardRenderedWith === 'eigenvector', 'State machine: Card accurately rendered Term B result');
+
+// Part B: Real content script browser integration test
+// Tests actual event handling, selectionchange across non-collapsed selections, and resolution during debounce interval
+const fs = require('fs');
+const vm = require('vm');
+
+function createMockBrowser() {
+  const listeners = {};
+  let currentSelectionText = '';
+  let isCollapsed = true;
+
+  const mockWindow = {
+    __FSD_INITIALIZED__: false,
+    innerWidth: 1024,
+    innerHeight: 768,
+    setTimeout: setTimeout,
+    clearTimeout: clearTimeout,
+    requestAnimationFrame: (cb) => { cb(); },
+    speechSynthesis: { speak: () => {}, cancel: () => {} },
+    navigator: { clipboard: { writeText: () => Promise.resolve() } },
+    addEventListener: (type, fn) => {
+      if (!listeners[type]) listeners[type] = [];
+      listeners[type].push(fn);
+    },
+    getSelection: () => ({
+      isCollapsed,
+      rangeCount: isCollapsed ? 0 : 1,
+      toString: () => currentSelectionText,
+      getRangeAt: () => ({
+        startContainer: { nodeType: 1, tagName: 'P', id: 'p1' },
+        endContainer: { nodeType: 1, tagName: 'P', id: 'p1' },
+        startOffset: 0,
+        endOffset: currentSelectionText.length,
+        getBoundingClientRect: () => ({ left: 100, top: 100, width: 80, height: 20, right: 180, bottom: 120 })
+      })
+    })
+  };
+
+  mockWindow.window = mockWindow;
+
+  const createElement = (tag) => {
+    const el = {
+      tagName: tag.toUpperCase(),
+      innerHTML: '',
+      classList: {
+        _classes: new Set(),
+        add: (c) => el.classList._classes.add(c),
+        remove: (c) => el.classList._classes.delete(c),
+        contains: (c) => el.classList._classes.has(c)
+      },
+      style: {},
+      children: [],
+      appendChild: (child) => { el.children.push(child); return child; },
+      remove: () => { el.innerHTML = ''; },
+      querySelector: (sel) => createElement('div'),
+      querySelectorAll: () => [],
+      attachShadow: () => createElement('div'),
+      getBoundingClientRect: () => ({ left: 100, top: 100, width: 80, height: 20, right: 180, bottom: 120 })
+    };
+    return el;
+  };
+
+  const docEl = createElement('html');
+  const bodyEl = createElement('body');
+  docEl.appendChild(bodyEl);
+
+  const mockDocument = {
+    createElement,
+    documentElement: docEl,
+    body: bodyEl,
+    addEventListener: (type, fn) => {
+      if (!listeners[type]) listeners[type] = [];
+      listeners[type].push(fn);
+    },
+    dispatchEvent: (type, event) => {
+      if (listeners[type]) {
+        listeners[type].forEach(fn => fn(event || {}));
+      }
+    }
+  };
+
+  mockWindow.document = mockDocument;
+
+  let pendingTranslationCallbacks = [];
+
+  const mockChrome = {
+    storage: {
+      local: {
+        get: (keys, cb) => cb({ settings: { autoTranslate: true, triggerMode: 'instant', enableOnlineFallback: true } }),
+        set: (data, cb) => { if (cb) cb(); }
+      },
+      onChanged: { addListener: () => {} }
+    },
+    runtime: {
+      getURL: (p) => 'chrome-extension://dummy/' + p,
+      onMessage: { addListener: () => {} },
+      sendMessage: (msg, cb) => {
+        if (msg.action === 'translate_fallback') {
+          pendingTranslationCallbacks.push({ text: msg.text, cb });
+        }
+      }
+    }
+  };
+
+  mockWindow.chrome = mockChrome;
+  return {
+    mockWindow,
+    mockDocument,
+    listeners,
+    setSelection: (text, collapsed = false) => {
+      currentSelectionText = text;
+      isCollapsed = collapsed;
+    },
+    getPendingTranslations: () => pendingTranslationCallbacks
+  };
+}
+
+const { mockWindow, mockDocument, setSelection, getPendingTranslations } = createMockBrowser();
+const contentScriptCode = fs.readFileSync(require.resolve('../content/content.js'), 'utf8');
+const vmCtx = vm.createContext(mockWindow);
+vm.runInContext(contentScriptCode, vmCtx);
+
+const fsdReal = mockWindow.__FSD_CONTENT_SCRIPT__;
+assert(typeof fsdReal === 'object', 'Real content script loaded and initialized in browser environment');
+
+// Step 1: User selects 'valeur' (non-collapsed selection)
+setSelection('valeur', false);
+mockDocument.dispatchEvent('selectionchange');
+fsdReal.handleTextSelection();
+
+const reqIdStep1 = fsdReal.getCurrentRequestId();
+const pendingNetworkCalls = getPendingTranslations();
+assert(pendingNetworkCalls.length === 1 && pendingNetworkCalls[0].text === 'valeur', 'Content script dispatched fallback translation request for Term 1 (valeur)');
+
+// Step 2: User modifies selection using Shift+Arrow to 'valeur propre' (remains non-collapsed!)
+setSelection('valeur propre', false);
+mockDocument.dispatchEvent('selectionchange');
+
+const reqIdStep2 = fsdReal.getCurrentRequestId();
+assert(reqIdStep2 > reqIdStep1, 'Real content script: selectionchange between non-collapsed selections immediately invalidated in-flight request');
+
+// Step 3: DURING debounce interval (before keyup debounce expires), resolve Term 1 delayed response
+const term1DelayedRequest = pendingNetworkCalls[0];
+term1DelayedRequest.cb({
+  success: true,
+  result: { fr: 'valeur', en: 'value', category: 'math', definition: 'A numerical quantity' }
+});
+
+const cardAfterStaleResolution = fsdReal.getCardElement();
+const renderedStaleValue = cardAfterStaleResolution ? cardAfterStaleResolution.innerHTML.includes('value') : false;
+assert(renderedStaleValue === false, 'Real content script: delayed response arriving during debounce interval was successfully dropped and rejected');
+
+// Step 4: Complete debounce interval and handle Term 2 ('valeur propre')
+fsdReal.handleTextSelection();
+assert(pendingNetworkCalls.length === 2 && pendingNetworkCalls[1].text === 'valeur propre', 'Content script dispatched request for Term 2 (valeur propre)');
+
+const term2ValidRequest = pendingNetworkCalls[1];
+term2ValidRequest.cb({
+  success: true,
+  result: { fr: 'valeur propre', en: 'eigenvalue', category: 'math', definition: 'A scalar lambda' }
+});
+
+const cardAfterActiveResolution = fsdReal.getCardElement();
+const renderedActiveValue = cardAfterActiveResolution ? cardAfterActiveResolution.innerHTML.includes('eigenvalue') : false;
+assert(renderedActiveValue === true, 'Real content script: active selection response for Term 2 was accurately rendered into the card');
 
 // 13. SETTINGS & NEGATIVE LOOKUP INVARIANTS AUDIT
 console.log('\n⚙️  13. SETTINGS & NEGATIVE LOOKUP INVARIANTS AUDIT');
