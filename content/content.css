@@ -306,29 +306,56 @@
   color: #e2e8f0;
 }
 
-/* Floating Quick Trigger Icon (if triggerMode is 'icon') */
-.fsd-trigger-icon {
+/* Floating Quick Trigger Button */
+.fsd-trigger-btn {
   position: fixed;
   pointer-events: auto;
-  width: 28px;
   height: 28px;
-  background: #1e1b4b;
-  border: 1px solid #6366f1;
-  border-radius: 50%;
-  color: #ffffff;
-  display: flex;
+  padding: 0 10px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 14px;
+  color: #f8fafc;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  font-size: 13px;
-  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.25);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s ease;
   z-index: 2147483647;
+  user-select: none;
+  opacity: 0;
+  transform: translateY(4px) scale(0.95);
 }
 
-.fsd-trigger-icon:hover {
-  transform: scale(1.15);
-  background: #312e81;
+.fsd-trigger-btn.fsd-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.fsd-trigger-btn:hover {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: #38bdf8;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px) scale(1.04);
+}
+
+.fsd-trigger-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.fsd-trigger-btn .fsd-trigger-glyph {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.fsd-trigger-btn .fsd-trigger-text {
+  color: #e2e8f0;
 }
 
 /* Loading State for Online Fallback */

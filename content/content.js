@@ -22,7 +22,7 @@
   // Default User Settings
   let settings = {
     autoTranslate: true,
-    triggerMode: 'instant', // 'instant' | 'icon' | 'alt'
+    triggerMode: 'button', // 'button' (default: click button to translate) | 'instant' | 'alt'
     theme: 'dark',
     autoPronounce: false,
     enableOnlineFallback: true
@@ -329,33 +329,54 @@
     });
   }
 
-  // Display floating trigger icon (if triggerMode === 'icon')
-  function showTriggerIcon(rect, onClick) {
+  // Display floating trigger button (click button to translate)
+  function showTriggerButton(rect, onClick) {
     const shadow = getOrCreateShadowRoot();
     if (!triggerIconElement) {
       triggerIconElement = document.createElement('div');
-      triggerIconElement.className = 'fsd-trigger-icon';
-      triggerIconElement.innerHTML = '🔬';
-      triggerIconElement.title = 'Click to translate scientific term';
+      triggerIconElement.className = 'fsd-trigger-btn';
+      triggerIconElement.innerHTML = `
+        <span class="fsd-trigger-glyph">🔬</span>
+        <span class="fsd-trigger-text">Translate</span>
+      `;
+      triggerIconElement.title = 'Click to translate scientific term (FR ➔ EN)';
       shadow.appendChild(triggerIconElement);
     }
 
-    const iconX = Math.min(rect.right + 6, window.innerWidth - 36);
-    const iconY = Math.max(10, rect.top - 14);
+    const estimatedBtnWidth = 92;
+    // Position button near top-right of selection, clamping to viewport
+    let btnX = rect.right + 6;
+    if (btnX + estimatedBtnWidth > window.innerWidth - 12) {
+      btnX = window.innerWidth - estimatedBtnWidth - 12;
+    }
+    btnX = Math.max(12, btnX);
 
-    triggerIconElement.style.left = `${Math.round(iconX)}px`;
-    triggerIconElement.style.top = `${Math.round(iconY)}px`;
-    triggerIconElement.style.display = 'flex';
+    let btnY = rect.top - 32;
+    if (btnY < 12) {
+      btnY = rect.bottom + 6;
+    }
+    btnY = Math.max(12, Math.min(btnY, window.innerHeight - 40));
+
+    triggerIconElement.style.left = `${Math.round(btnX)}px`;
+    triggerIconElement.style.top = `${Math.round(btnY)}px`;
+    triggerIconElement.style.display = 'inline-flex';
+
+    requestAnimationFrame(() => {
+      if (triggerIconElement) {
+        triggerIconElement.classList.add('fsd-visible');
+      }
+    });
 
     triggerIconElement.onclick = (e) => {
       e.stopPropagation();
-      hideTriggerIcon();
+      hideTriggerButton();
       onClick();
     };
   }
 
-  function hideTriggerIcon() {
+  function hideTriggerButton() {
     if (triggerIconElement) {
+      triggerIconElement.classList.remove('fsd-visible');
       triggerIconElement.style.display = 'none';
     }
   }
@@ -371,7 +392,7 @@
         }
       }, 200);
     }
-    hideTriggerIcon();
+    hideTriggerButton();
     activeEntry = null;
   }
 
@@ -465,10 +486,11 @@
       }
     };
 
-    if (settings.triggerMode === 'icon') {
-      showTriggerIcon(rect, executeTranslation);
-    } else {
+    if (settings.triggerMode === 'instant') {
       executeTranslation();
+    } else {
+      // Default: do not translate immediately, show floating button to trigger translation
+      showTriggerButton(rect, executeTranslation);
     }
   }
 

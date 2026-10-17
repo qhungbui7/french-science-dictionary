@@ -3,6 +3,8 @@
 
 ## 2026-10-17
 
+- 04:19 - Switch default translation behavior from instant popover to on-demand floating Translate button
+- 04:19 - Add sleek glassmorphic Translate button pill with micro-animation and responsive viewport clamping
 - 04:15 - Author comprehensive Domain Expert Audit Guide covering axiomatic mathematical foundations, false friends, and security audit
 - 04:15 - Create Lexicon Specification documenting database schema and authentic literature citations (Bourbaki, Schwartz, LeCun)
 - 04:15 - Implement 95-point automated verification and regression test suite with npm test support

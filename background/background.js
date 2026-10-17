@@ -9,7 +9,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['settings', 'favorites', 'history', 'translationCache'], (res) => {
     const defaults = {
       autoTranslate: true,
-      triggerMode: 'instant', // 'instant' | 'icon' | 'alt'
+      triggerMode: 'button', // 'button' (default: click button to translate) | 'instant' | 'alt'
       theme: 'dark',
       autoPronounce: false,
       enableOnlineFallback: true
