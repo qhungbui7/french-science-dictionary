@@ -3,6 +3,8 @@
 
 ## 2026-10-17
 
+- 05:33 - Add 1-click voluntary "Suggest Term" contribution button to tooltip not-found cards and popup search empty state
+- 05:33 - Add GitHub Issue Form template for scientific term suggestions (.github/ISSUE_TEMPLATE/term_suggestion.yml)
 - 05:17 - Invalidate pending async requests immediately upon browser selectionchange between non-collapsed selections (closing the Shift+Arrow race interval)
 - 05:17 - Add real content script browser-level regression test resolving translation responses during debounce interval (expanded test suite to 188 assertions)
 - 05:08 - Invalidate in-flight translation requests and dismiss stale cards on keyboard selection changes (Shift+Arrow)

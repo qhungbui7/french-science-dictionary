@@ -291,6 +291,21 @@
     `;
   }
 
+  // Helper to generate a pre-filled GitHub issue suggestion URL
+  function buildSuggestTermUrl(term) {
+    const cleanTerm = (term || '').trim();
+    const title = encodeURIComponent(`[Term Suggestion]: ${cleanTerm}`);
+    const body = encodeURIComponent(
+      `### Scientific Term Suggestion\n\n` +
+      `- **French Term**: ${cleanTerm}\n` +
+      `- **Suggested English Translation**:\n` +
+      `- **Scientific Discipline**: [ ] Mathematics  [ ] AI/ML  [ ] CS  [ ] Physics/Science  [ ] Academic French\n` +
+      `- **Context / Textbook Citation** (optional):\n\n` +
+      `*Submitted via French Science & Math Dictionary extension.*`
+    );
+    return `https://github.com/qhungbui7/french-science-dictionary/issues/new?title=${title}&body=${body}`;
+  }
+
   // Render Offline Mode / Fallback Disabled Card
   function showOfflineNotFoundCard(text, rect) {
     const shadow = getOrCreateShadowRoot();
@@ -304,6 +319,7 @@
     }
 
     const safeText = escapeHTML(text);
+    const suggestUrl = buildSuggestTermUrl(text);
     cardElement.innerHTML = `
       <div class="fsd-header">
         <div class="fsd-header-left">
@@ -319,6 +335,11 @@
         </div>
         <div style="font-size: 12px; color: #94a3b8; margin-top: 8px; line-height: 1.4;">
           Online fallback translation is currently disabled in your extension preferences.
+        </div>
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(148, 163, 184, 0.15);">
+          <a href="${suggestUrl}" target="_blank" class="fsd-suggest-btn">
+            <span>➕</span> <span>Suggest Term to Maintainer ↗</span>
+          </a>
         </div>
       </div>
     `;
@@ -520,6 +541,7 @@
         showCard(response.result, rect);
       } else {
         const safeText = escapeHTML(text);
+        const suggestUrl = buildSuggestTermUrl(text);
         cardElement.innerHTML = `
           <div class="fsd-header">
             <div class="fsd-header-left">
@@ -529,9 +551,14 @@
               <button class="fsd-icon-btn fsd-close-btn">✕</button>
             </div>
           </div>
-          <div class="fsd-body">
-            <div style="font-size: 13px; color: #94a3b8;">
+          <div class="fsd-body" style="padding: 18px 16px;">
+            <div style="font-size: 13px; color: #94a3b8; line-height: 1.45;">
               No scientific translation found for « <strong>${safeText}</strong> ».
+            </div>
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(148, 163, 184, 0.15);">
+              <a href="${suggestUrl}" target="_blank" class="fsd-suggest-btn">
+                <span>➕</span> <span>Suggest Term to Maintainer ↗</span>
+              </a>
             </div>
           </div>
         `;

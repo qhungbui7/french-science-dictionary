@@ -1,0 +1,54 @@
+name: Scientific Term Suggestion
+description: Suggest a new French-to-English scientific term or improve an existing definition.
+title: "[Term Suggestion]: "
+labels: ["enhancement", "lexicon-contribution"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping curate the French Science & Math Dictionary!
+        Please fill in as much detail as you have from your academic reading or coursework.
+  - type: input
+    id: french_term
+    attributes:
+      label: French Term or Phrase
+      description: The canonical French technical term (e.g., 'espace métrique', 'matrice jacobienne').
+      placeholder: e.g. valeur propre
+    validations:
+      required: true
+  - type: input
+    id: english_translation
+    attributes:
+      label: Suggested English Translation
+      description: The standard English scientific equivalent.
+      placeholder: e.g. eigenvalue
+    validations:
+      required: true
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Scientific Domain
+      description: Which discipline does this term primarily belong to?
+      options:
+        - Mathematics (Linear Algebra, Analysis, Topology, Probability)
+        - AI & Machine Learning (Deep Learning, Optimization, RL)
+        - Computer Science (Algorithms, Concurrency, Architecture)
+        - Physics & Natural Science (Mechanics, Quantum, Thermodynamics)
+        - Academic French (Mathematical proof connectors and discourse)
+    validations:
+      required: true
+  - type: textarea
+    id: context_citation
+    attributes:
+      label: Textbook / Lecture Note Citation or Example Sentence
+      description: Where did you encounter this term? (e.g. Bourbaki, Paris-Saclay lecture notes, course handout).
+      placeholder: "e.g. 'Soit E un espace métrique complet...'"
+    validations:
+      required: false
+  - type: textarea
+    id: notes_false_friends
+    attributes:
+      label: Additional Notes or False-Friend Caveats
+      description: Any common translation traps to avoid? (e.g. 'corps' means 'field', not 'body').
+    validations:
+      required: false

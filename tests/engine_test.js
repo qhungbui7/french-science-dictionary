@@ -230,7 +230,8 @@ const {
   sanitizeAnkiField,
   formatAnkiDeck,
   sanitizeCsvCell,
-  formatCsvExport
+  formatCsvExport,
+  buildSuggestTermUrl
 } = require('../popup/popup.js');
 
 function highlightMatch(text, query) {
@@ -288,6 +289,12 @@ assert(csvOutput.includes('"\'+cmd'), 'CSV export: neutralized plus-sign command
 assert(csvOutput.includes('"\'@SUM(A1:A10)"'), 'CSV export: neutralized at-command formula injection (@) with leading single-quote');
 assert(csvOutput.includes('"\'-10% discount"'), 'CSV export: neutralized negative formula injection (-) with leading single-quote');
 assert(!csvOutput.includes('term\nwith\nnewline'), 'CSV export: sanitized embedded linebreaks in cell content');
+
+// Test Suggest Term URL Builder
+const suggestUrl = buildSuggestTermUrl('symplectique');
+assert(suggestUrl.startsWith('https://github.com/qhungbui7/french-science-dictionary/issues/new?'), 'Suggest Term: generated valid GitHub Issue URL');
+assert(suggestUrl.includes('symplectique'), 'Suggest Term: properly URL-encoded issue title with term');
+assert(suggestUrl.includes('Mathematics') && suggestUrl.includes('Scientific%20Term%20Suggestion'), 'Suggest Term: pre-filled scientific discipline template in body');
 
 // 12. ASYNCHRONOUS SELECTION RACE & REAL CONTENT SCRIPT BROWSER AUDIT
 console.log('\n⚡ 12. ASYNCHRONOUS SELECTION RACE & REAL CONTENT SCRIPT BROWSER AUDIT');

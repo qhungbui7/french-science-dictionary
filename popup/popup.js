@@ -49,13 +49,29 @@ function formatCsvExport(favorites) {
   return csv;
 }
 
+// Build pre-filled GitHub issue suggestion URL for voluntary user term submissions
+function buildSuggestTermUrl(term) {
+  const cleanTerm = (term || '').trim();
+  const title = encodeURIComponent(`[Term Suggestion]: ${cleanTerm}`);
+  const body = encodeURIComponent(
+    `### Scientific Term Suggestion\n\n` +
+    `- **French Term**: ${cleanTerm}\n` +
+    `- **Suggested English Translation**:\n` +
+    `- **Scientific Discipline**: [ ] Mathematics  [ ] AI/ML  [ ] CS  [ ] Physics/Science  [ ] Academic French\n` +
+    `- **Context / Textbook Citation** (optional):\n\n` +
+    `*Submitted via French Science & Math Dictionary extension.*`
+  );
+  return `https://github.com/qhungbui7/french-science-dictionary/issues/new?title=${title}&body=${body}`;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     escapeHTML,
     sanitizeAnkiField,
     formatAnkiDeck,
     sanitizeCsvCell,
-    formatCsvExport
+    formatCsvExport,
+    buildSuggestTermUrl
   };
 }
 
@@ -157,9 +173,13 @@ if (typeof document !== 'undefined') {
     resultsCount.textContent = `${results.length} term${results.length === 1 ? '' : 's'} found`;
 
     if (results.length === 0) {
+      const suggestUrl = buildSuggestTermUrl(query);
       resultsList.innerHTML = `
         <div class="empty-state">
-          No terms matching « <strong>${escapeHTML(query)}</strong> ».
+          <div style="margin-bottom: 12px;">No terms matching « <strong>${escapeHTML(query)}</strong> ».</div>
+          <a href="${suggestUrl}" target="_blank" class="suggest-term-link">
+            <span>➕</span> <span>Suggest « ${escapeHTML(query)} » for Lexicon ↗</span>
+          </a>
         </div>
       `;
       return;
