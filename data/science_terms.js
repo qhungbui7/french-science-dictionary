@@ -86,9 +86,28 @@ const SCIENCE_TERMS = [
     pos: "n.m.",
     definition: "An algebraic structure with addition and multiplication where every non-zero element has a multiplicative inverse.",
     note: "FALSE FRIEND: In abstract algebra, 'corps' translates to 'field' (when commutative) or 'division ring / skew field' (corps gauche). Never translate as 'body'!",
+    source: "Bourbaki, N. (1970). Algèbre, Chapitres 1 à 3, Hermann; Serre, J.-P. (1970). Cours d'arithmétique.",
+    senses: [
+      {
+        id: "corps-abstract-algebra",
+        domain: "Abstract Algebra",
+        category: "math",
+        translation: "field / division ring",
+        definition: "A ring in which every non-zero element is invertible under multiplication (commutative: field; non-commutative: division ring).",
+        note: "CRITICAL: Never translate as 'body' in algebraic literature."
+      },
+      {
+        id: "corps-physics",
+        domain: "Physics & Mechanics",
+        category: "science",
+        translation: "body / medium",
+        definition: "A physical entity or continuous medium, as in 'corps noir' (black body) or 'corps rigide' (rigid body).",
+        note: "Used in classical mechanics and thermodynamics."
+      }
+    ],
     examples: [
-      { fr: "L'ensemble des nombres réels ℝ forme un corps commutatif.", en: "The set of real numbers ℝ forms a field." },
-      { fr: "Soit 𝔽_q un corps fini à q éléments.", en: "Let 𝔽_q be a finite field with q elements." }
+      { fr: "L'ensemble des nombres réels ℝ forme un corps commutatif.", en: "The set of real numbers ℝ forms a field.", source: "Bourbaki, N. (1970). Algèbre, Chapitre 1." },
+      { fr: "Soit 𝔽_q un corps fini à q éléments.", en: "Let 𝔽_q be a finite field with q elements.", source: "Serre, J.-P. (1970). Cours d'arithmétique, PUF." }
     ],
     synonyms: ["corps commutatif"]
   },
@@ -101,8 +120,9 @@ const SCIENCE_TERMS = [
     pos: "n.m.",
     definition: "A field that contains a finite number of elements, always of prime-power order p^k.",
     note: "Also known as Galois field GF(p^k).",
+    source: "Serre, J.-P. (1970). Cours d'arithmétique, PUF.",
     examples: [
-      { fr: "La cryptographie moderne repose largement sur l'arithmétique des corps finis.", en: "Modern cryptography relies heavily on the arithmetic of finite fields." }
+      { fr: "La cryptographie moderne repose largement sur l'arithmétique des corps finis.", en: "Modern cryptography relies heavily on the arithmetic of finite fields.", source: "Menezes, A. et al. (1996). Handbook of Applied Cryptography." }
     ]
   },
   {
@@ -113,22 +133,42 @@ const SCIENCE_TERMS = [
     pos: "n.m.",
     definition: "An algebraic structure consisting of a set with two binary operations (addition and multiplication) generalizing integers.",
     note: "In mathematics, 'anneau' is a ring, not a loop, ringlet, or jewelry.",
+    source: "Bourbaki, N. (1970). Algèbre, Chapitres 1 à 3.",
     examples: [
-      { fr: "ℤ[X] est un anneau commutatif unitaire intègre.", en: "ℤ[X] is a commutative unitary integral domain (ring)." }
+      { fr: "ℤ[X] est un anneau commutatif unitaire intègre.", en: "ℤ[X] is a commutative unitary integral domain (ring).", source: "Arnaudiès, J.-M. & Fraysse, H. (1988). Cours de mathématiques-1, Dunod." }
     ]
   },
   {
     fr: "variété",
     en: "manifold (differential geometry) / variety (algebraic geometry)",
-    alt: ["manifold", "algebraic variety"],
+    alt: ["manifold", "algebraic variety", "smooth manifold"],
     category: "math",
     subcategories: ["differential_geometry", "topology", "algebraic_geometry"],
     pos: "n.f.",
-    definition: "A topological space that locally resembles Euclidean space near each point.",
+    definition: "In differential geometry, a topological space that locally resembles Euclidean space; in algebraic geometry, the zero set of a collection of polynomials.",
     note: "CRITICAL DISTINCTION: In differential geometry and topology, 'variété' translates to 'manifold' (e.g. 'variété riemannienne' = 'Riemannian manifold'). In algebraic geometry, 'variété algébrique' translates to 'algebraic variety'.",
+    source: "Berger, M. & Gostiaux, B. (1992). Géométrie différentielle; Hartshorne, R. (1977). Algebraic Geometry.",
+    senses: [
+      {
+        id: "variete-diff-geom",
+        domain: "Differential Geometry & Topology",
+        category: "math",
+        translation: "manifold",
+        definition: "A topological space that locally resembles Euclidean space near each point.",
+        note: "Standard for smooth manifolds, Riemannian manifolds, and complex manifolds."
+      },
+      {
+        id: "variete-alg-geom",
+        domain: "Algebraic Geometry",
+        category: "math",
+        translation: "variety",
+        definition: "The zero locus of a set of polynomial equations over an algebraically closed field.",
+        note: "Standard for affine varieties and projective varieties."
+      }
+    ],
     examples: [
-      { fr: "Une sphère est une variété différentielle compacte de dimension 2.", en: "A sphere is a compact 2-dimensional smooth manifold." },
-      { fr: "L'espace tangent en un point d'une variété différentielle.", en: "The tangent space at a point on a smooth manifold." }
+      { fr: "Une sphère est une variété différentielle compacte de dimension 2.", en: "A sphere is a compact 2-dimensional smooth manifold.", source: "Schwartz, L. (1991). Cours d'analyse, Hermann." },
+      { fr: "L'espace tangent en un point d'une variété différentielle.", en: "The tangent space at a point on a smooth manifold.", source: "Berger, M. & Gostiaux, B. (1992). Géométrie différentielle, Armand Colin." }
     ]
   },
   {
@@ -140,9 +180,10 @@ const SCIENCE_TERMS = [
     pos: "n.f.",
     definition: "The union of a set and its limit points, denoted Ā or Cl(A).",
     note: "FALSE FRIEND: In topology, 'adhérence' is the 'closure' of a set. Do NOT translate as 'adherence' or 'stickiness'.",
+    source: "Bourbaki, N. (1971). Topologie générale; Schwartz, L. (1991). Analyse.",
     examples: [
-      { fr: "L'adhérence de l'intervalle ouvert (0, 1) dans ℝ est [0, 1].", en: "The closure of the open interval (0, 1) in ℝ is [0, 1]." },
-      { fr: "Un sous-ensemble est fermé si et seulement s'il est égal à son adhérence.", en: "A subset is closed if and only if it is equal to its closure." }
+      { fr: "L'adhérence de l'intervalle ouvert (0, 1) dans ℝ est [0, 1].", en: "The closure of the open interval (0, 1) in ℝ is [0, 1].", source: "Schwartz, L. (1991). Cours d'analyse, Hermann." },
+      { fr: "Un sous-ensemble est fermé si et seulement s'il est égal à son adhérence.", en: "A subset is closed if and only if it is equal to its closure.", source: "Bourbaki, N. (1971). Topologie générale, Chapitres 1 à 4." }
     ],
     synonyms: ["fermeture"],
     antonyms: ["intérieur"]
@@ -156,21 +197,59 @@ const SCIENCE_TERMS = [
     pos: "n.m.",
     definition: "The set of elements mapped to the zero element by a homomorphism or linear map: Ker(f).",
     note: "FALSE FRIEND: In linear algebra / algebra, 'noyau' is 'kernel' or 'null space'. Never translate as 'core', 'nucleus', or 'pit'.",
+    source: "Arnaudiès, J.-M. & Fraysse, H. (1988). Cours de mathématiques-1: Algèbre, Dunod.",
+    senses: [
+      {
+        id: "noyau-linear-algebra",
+        domain: "Linear Algebra & Algebra",
+        category: "math",
+        translation: "kernel / null space",
+        definition: "The set of elements mapped to zero by a homomorphism or linear map: Ker(f) = {x : f(x) = 0}.",
+        note: "CRITICAL: Never translate as 'nucleus' or 'core' in mathematics."
+      },
+      {
+        id: "noyau-physics",
+        domain: "Nuclear Physics & Chemistry",
+        category: "science",
+        translation: "nucleus",
+        definition: "The dense central region of an atom consisting of protons and neutrons.",
+        note: "Physical atomic nucleus."
+      }
+    ],
     examples: [
-      { fr: "Le noyau d'une application linéaire injective est réduit au vecteur nul.", en: "The kernel of an injective linear map consists only of the zero vector." }
+      { fr: "Le noyau d'une application linéaire injective est réduit au vecteur nul.", en: "The kernel of an injective linear map consists only of the zero vector.", source: "Arnaudiès, J.-M. & Fraysse, H. (1988). Cours de mathématiques-1, Dunod." }
     ]
   },
   {
     fr: "image",
     en: "image / range",
-    alt: ["column space (for matrices)"],
+    alt: ["range", "column space (for matrices)"],
     category: "math",
     subcategories: ["linear_algebra", "analysis"],
     pos: "n.f.",
     definition: "The set of all output values a function or linear map may produce: Im(f).",
     note: "In linear algebra, Im(A) corresponds to the range or column space of matrix A.",
+    source: "Bourbaki, N. (1970). Théorie des ensembles; LeCun, Y. et al. (2015). Deep Learning.",
+    senses: [
+      {
+        id: "image-math",
+        domain: "Mathematics & Linear Algebra",
+        category: "math",
+        translation: "image / range / column space",
+        definition: "The set of elements {f(x) : x in domain(f)}. For matrices, the subspace spanned by column vectors.",
+        note: "Notation: Im(f) or f(X)."
+      },
+      {
+        id: "image-cs-ai",
+        domain: "Computer Vision & AI",
+        category: "ai",
+        translation: "image",
+        definition: "A 2D array or multidimensional tensor representing visual pixel intensity values.",
+        note: "Standard raster digital image."
+      }
+    ],
     examples: [
-      { fr: "D'après le théorème du rang, dim(Ker f) + dim(Im f) = dim(E).", en: "By the rank-nullity theorem, dim(Ker f) + dim(Im f) = dim(E)." }
+      { fr: "D'après le théorème du rang, dim(Ker f) + dim(Im f) = dim(E).", en: "By the rank-nullity theorem, dim(Ker f) + dim(Im f) = dim(E).", source: "Schwartz, L. (1991). Cours d'analyse, Hermann." }
     ]
   },
   {

@@ -44,14 +44,13 @@
     "activeTab"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "https://api.mymemory.translated.net/*"
   ],
   "web_accessible_resources": [
     {
       "resources": [
         "content/content.css",
-        "icons/*",
-        "data/*"
+        "icons/*"
       ],
       "matches": ["<all_urls>"]
     }

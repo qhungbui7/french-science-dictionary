@@ -12,8 +12,14 @@ Unlike generic translation tools that confuse false friends, this extension focu
 
 ## ✨ Key Features
 
-- **⚡ Instant Highlight Translation**: Select or highlight any French word or phrase on any webpage to immediately see its precision English scientific translation in a floating, glassmorphic card.
-- **🛡️ Scoped Shadow DOM Architecture**: Injected entirely within an isolated Shadow DOM—zero styling collision or layout disruption on any host website (arXiv, Wikipedia, GitHub, Substack, Medium, etc.).
+- **⚡ On-Demand Highlight Translation**: Select or highlight any French word or phrase on any webpage. A non-intrusive floating button (`🔬 Translate`) appears near the cursor, allowing you to translate on demand with zero page disruption (instant popover and Alt-key modes are also configurable in Options).
+- **🛡️ Scoped Shadow DOM & XSS Security**: Injected entirely within an isolated Shadow DOM with strict HTML entity escaping across all dynamic DOM insertions—zero styling collision and robust XSS prevention on any host website (arXiv, Wikipedia, GitHub, Substack, Medium, etc.).
+- **📚 Multi-Sense Discipline Disambiguation**: Intelligently presents domain-specific alternative senses for polysemic scientific terms rather than collapsing them to a single definition:
+  - `variété`: **Manifold** in Differential Geometry vs. **Variety** in Algebraic Geometry.
+  - `corps`: **Field / Division ring** in Abstract Algebra vs. **Body / Medium** in Physics & Mechanics.
+  - `noyau`: **Kernel / Null space** in Linear Algebra vs. **Nucleus** in Nuclear Physics.
+  - `densité`: **Probability density function (PDF)** in Statistics vs. **Dense set** in Topology vs. **Mass density** in Physics.
+  - `image`: **Image / Range / Column space** in Linear Algebra vs. **Raster Image / Tensor** in Computer Vision.
 - **🎯 STEM Precision & False-Friend Warnings**:
   - `corps` ➔ **Field** (not *body*) in abstract algebra.
   - `variété` ➔ **Manifold** (not *variety*) in differential geometry.
@@ -24,14 +30,15 @@ Unlike generic translation tools that confuse false friends, this extension focu
   - `tribu` ➔ **$\sigma$-algebra / $\sigma$-field** (not *tribe*) in probability and measure theory.
   - `espérance` ➔ **Expected value / Expectation** (not *hope*).
   - `s'annuler` ➔ **To vanish / To equal zero** (not *to cancel*).
-- **🔊 Native Audio Pronunciation**: Listen to standard French and English pronunciations via the Web Speech API with a single click.
+- **🔤 Punctuation Boundary Normalization**: Seamlessly handles terms adjacent to mathematical punctuation, commas, brackets, quotes, and proof symbols (e.g. `valeur propre,`, `(espace vectoriel)`, `« fonction d'onde »`) while strictly preserving internal hyphens (`sous-espace`) and elided apostrophes (`d'onde`, `s'annuler`).
+- **🔊 Native Audio Pronunciation**: Listen to standard French and English pronunciations via the Web Speech API with a single click or automatically with the `autoPronounce` preference.
 - **🧠 Lemmatization & Morphological Stemming**: Automatically recognizes plurals (`valeurs propres` ➔ `valeur propre`, `réseaux` ➔ `réseau`), feminine variations (`bornée` ➔ `borné`), elisions (`l'espace` ➔ `espace`), and conjugated verbs (`s'annulent` ➔ `s'annuler`, `convergent` ➔ `converger`).
 - **📚 Interactive Extension Popup**:
-  - Live instant search with prefix and keyword fuzzy matching across French and English.
+  - Live instant search indexing French headwords, English translations, authorized alternatives, synonyms, discipline senses, definitions, and textbook examples.
   - Discipline filter pills: **📐 Mathematics**, **🤖 AI & Machine Learning**, **💻 Computer Science**, **🔬 Physics & Science**, and **📖 Academic French**.
   - **Scientific Concept of the Day** to discover mathematical definitions daily.
 - **🗂️ Anki & CSV Export**: Bookmark terms with a star (★) and export them directly to an **Anki Flashcard Deck (`.txt`)** or CSV for spaced repetition review!
-- **🌐 Offline-First with Online Fallback**: Zero-latency offline database for core STEM terms, with automatic fallback for rare or general words.
+- **🌐 Offline-First with Enforced Privacy**: Zero-latency offline database for core STEM terms. When online fallback is disabled in settings, external network calls are strictly blocked across both selection and context-menu workflows.
 
 ---
 
@@ -39,8 +46,8 @@ Unlike generic translation tools that confuse false friends, this extension focu
 
 For mathematicians, researchers, and technical auditors conducting peer review or security analysis:
 - 📑 **[Domain Expert Audit Guide](docs/DOMAIN_EXPERT_AUDIT_GUIDE.md)**: In-depth axiomatic analyses, discipline-by-discipline translation rationale, morphological stemming formalisms, and Manifest V3 security audit.
-- 📐 **[Lexicon Specification](docs/LEXICON_SPECIFICATION.md)**: Full database schema and tabular reference of all cataloged terms with academic literature citations (*Bourbaki, Laurent Schwartz, LeCun, Cormen*).
-- 🧪 **Automated Test Suite**: Run `npm test` to execute the 95-point automated verification and regression test suite.
+- 📐 **[Lexicon Specification](docs/LEXICON_SPECIFICATION.md)**: Full database schema, provenance citations (*Bourbaki, Laurent Schwartz, LeCun, Cormen, Rudin*), and tabular reference of cataloged terms.
+- 🧪 **Automated Test Suite**: Run `npm test` to execute the comprehensive automated verification and regression test suite.
 
 ---
 
@@ -66,7 +73,7 @@ For mathematicians, researchers, and technical auditors conducting peer review o
 
 1. Open [`test_page.html`](test_page.html) directly in your browser.
 2. Select any scientific word or multi-word phrase (e.g. *valeurs propres*, *descente de gradient stochastique*, *espace de Banach*, *exclusion mutuelle*).
-3. The floating translation card will appear instantly at your cursor location.
+3. The floating `🔬 Translate` trigger button appears next to your selection. Click it to open the precision translation card (or switch trigger mode to instant popover in Extension Preferences).
 
 ---
 

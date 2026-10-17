@@ -9,6 +9,15 @@ This document details the data schema, linguistic specifications, domain taxonom
 Every entry in the dictionary conforms to the following strict schema:
 
 ```typescript
+interface ScienceTermSense {
+  id: string;              // Stable unique identifier (e.g. 'variete-diff-geom')
+  domain: string;          // Human-readable discipline name (e.g. 'Differential Geometry')
+  category: 'math' | 'ai' | 'cs' | 'science' | 'general';
+  translation: string;     // Contextual English scientific translation
+  definition?: string;     // Discipline-specific definition
+  note?: string;           // Precision warning or notation caveat
+}
+
 interface ScienceTermEntry {
   fr: string;              // French headword in standard citation form
   en: string;              // Primary precision English scientific translation
@@ -18,9 +27,12 @@ interface ScienceTermEntry {
   pos?: string;            // Part of speech (e.g., 'n.m.', 'n.f.', 'adj.', 'v.', 'loc. adv.')
   definition?: string;     // Rigorous English scientific definition
   note?: string;           // Domain caveat / false friend warning
+  source?: string;         // Primary bibliographic or textbook source citation
+  senses?: ScienceTermSense[]; // Explicit multi-sense taxonomy across disciplines
   examples?: {
     fr: string;            // Authentic excerpt from French literature/textbooks
     en: string;            // Accurate corresponding English translation
+    source?: string;       // Bibliographic reference or page citation for authentic example
   }[];
   synonyms?: string[];     // French synonyms or alternate orthographies
   antonyms?: string[];     // Direct conceptual opposites (e.g., ouvert <-> fermé)

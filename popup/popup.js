@@ -6,6 +6,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const dict = window.FrenchScienceDict;
   let currentCategory = 'all';
 
+  // HTML Sanitization utility to prevent DOM XSS injection
+  function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // DOM Elements
   const termsCountBadge = document.getElementById('termsCountBadge');
   const searchInput = document.getElementById('searchInput');
@@ -49,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (daily.note) {
         dailyNote.style.display = 'block';
-        dailyNote.innerHTML = `<strong>Note:</strong> ${daily.note}`;
+        dailyNote.innerHTML = `<strong>Note:</strong> ${escapeHTML(daily.note)}`;
       } else {
         dailyNote.style.display = 'none';
       }
@@ -101,23 +112,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (results.length === 0) {
       resultsList.innerHTML = `
         <div class="empty-state">
-          No terms matching « <strong>${query}</strong> ».
+          No terms matching « <strong>${escapeHTML(query)}</strong> ».
         </div>
       `;
       return;
     }
 
-    resultsList.innerHTML = results.map(entry => `
-      <div class="result-card" data-fr="${entry.fr}">
-        <div class="card-top">
-          <span class="card-fr">${highlightMatch(entry.fr, query)}</span>
-          <span class="card-category cat-${entry.category}">${entry.category}</span>
+    resultsList.innerHTML = results.map(entry => {
+      const safeFr = escapeHTML(entry.fr);
+      const safeCat = escapeHTML(entry.category);
+
+      const sensesHTML = (entry.senses && entry.senses.length > 1) ? `
+        <div class="card-senses" style="margin-top:5px;font-size:11px;color:#94a3b8;line-height:1.4;">
+          ${entry.senses.map(s => `
+            <div><span style="color:#38bdf8;">[${escapeHTML(s.domain || s.category)}]</span> <strong>${escapeHTML(s.translation || s.en)}</strong></div>
+          `).join('')}
         </div>
-        <div class="card-en">${highlightMatch(entry.en, query)}</div>
-        ${entry.definition ? `<div class="card-def">${entry.definition}</div>` : ''}
-        ${entry.note ? `<div class="card-note">⚠️ ${entry.note}</div>` : ''}
-      </div>
-    `).join('');
+      ` : '';
+
+      return `
+        <div class="result-card" data-fr="${safeFr}">
+          <div class="card-top">
+            <span class="card-fr">${highlightMatch(entry.fr, query)}</span>
+            <span class="card-category cat-${safeCat}">${safeCat}</span>
+          </div>
+          <div class="card-en">${highlightMatch(entry.en, query)}</div>
+          ${sensesHTML}
+          ${entry.definition ? `<div class="card-def">${escapeHTML(entry.definition)}</div>` : ''}
+          ${entry.note ? `<div class="card-note">⚠️ ${escapeHTML(entry.note)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
 
     // Attach card click handlers (copy & pronounce)
     resultsList.querySelectorAll('.result-card').forEach(card => {
@@ -133,14 +158,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Safe highlight match: escapes text first to ensure zero HTML injection
   function highlightMatch(text, query) {
-    if (!query) return text;
+    if (!text) return '';
+    const escapedText = escapeHTML(text);
+    if (!query || !query.trim()) return escapedText;
     try {
-      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`(${escaped})`, 'gi');
-      return text.replace(regex, '<mark style="background:rgba(56,189,248,0.3);color:#fff;border-radius:2px;padding:0 2px;">$1</mark>');
+      const escapedQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escapedQuery})`, 'gi');
+      return escapedText.replace(regex, '<mark style="background:rgba(56,189,248,0.3);color:#fff;border-radius:2px;padding:0 2px;">$1</mark>');
     } catch (e) {
-      return text;
+      return escapedText;
     }
   }
 
@@ -222,12 +250,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       favoritesList.innerHTML = favs.map(f => `
-        <div class="result-card" data-fr="${f.fr}">
+        <div class="result-card" data-fr="${escapeHTML(f.fr)}">
           <div class="card-top">
-            <span class="card-fr">${f.fr}</span>
-            <button class="icon-action-btn delete-fav-btn" data-fr="${f.fr}" title="Remove">✕</button>
+            <span class="card-fr">${escapeHTML(f.fr)}</span>
+            <button class="icon-action-btn delete-fav-btn" data-fr="${escapeHTML(f.fr)}" title="Remove">✕</button>
           </div>
-          <div class="card-en">${f.en}</div>
+          <div class="card-en">${escapeHTML(f.en)}</div>
         </div>
       `).join('');
 
@@ -328,12 +356,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       historyList.innerHTML = history.map(h => `
-        <div class="result-card" data-fr="${h.fr}">
+        <div class="result-card" data-fr="${escapeHTML(h.fr)}">
           <div class="card-top">
-            <span class="card-fr">${h.fr}</span>
-            <span class="card-category cat-${h.category}">${h.category}</span>
+            <span class="card-fr">${escapeHTML(h.fr)}</span>
+            <span class="card-category cat-${escapeHTML(h.category)}">${escapeHTML(h.category)}</span>
           </div>
-          <div class="card-en">${h.en}</div>
+          <div class="card-en">${escapeHTML(h.en)}</div>
         </div>
       `).join('');
 
@@ -431,13 +459,13 @@ document.addEventListener('DOMContentLoaded', () => {
     cheatsheetGrid.innerHTML = FALSE_FRIENDS.map(item => `
       <div class="cheatsheet-item">
         <div class="cheatsheet-term">
-          <span class="fr-word">${item.fr}</span>
+          <span class="fr-word">${escapeHTML(item.fr)}</span>
           <span style="color: #64748b;">→</span>
-          <span class="en-correct">${item.en}</span>
-          <span class="en-wrong">(${item.wrong})</span>
+          <span class="en-correct">${escapeHTML(item.en)}</span>
+          <span class="en-wrong">(${escapeHTML(item.wrong)})</span>
         </div>
         <div class="cheatsheet-explanation">
-          <strong style="color:#a5b4fc;">[${item.cat}]</strong> ${item.desc}
+          <strong style="color:#a5b4fc;">[${escapeHTML(item.cat)}]</strong> ${escapeHTML(item.desc)}
         </div>
       </div>
     `).join('');

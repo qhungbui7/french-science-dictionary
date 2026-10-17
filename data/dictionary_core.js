@@ -34,6 +34,28 @@
     return s.trim();
   }
 
+  // Strip punctuation at token boundaries (commas, periods, colons, semicolons, brackets, quotes)
+  // while strictly preserving internal hyphens (sous-espace) and internal apostrophes (d'onde, s'annuler)
+  function stripBoundaryPunctuation(str) {
+    if (!str) return '';
+    let s = str.trim();
+    const boundaryPunctRegex = /^[\s,;:!?.…"'«»“”()[\]{}—–\-_/\\<>*+=~`^|]+|[\s,;:!?.…"'«»“”()[\]{}—–\-_/\\<>*+=~`^|]+$/g;
+    s = s.replace(boundaryPunctRegex, '').trim();
+    // Remove isolated leading/trailing apostrophes
+    s = s.replace(/^['’]+|['’]+$/g, '').trim();
+    return s;
+  }
+
+  // Normalize delimiters to spaces for robust subphrase matching in mathematical prose
+  function tokenizePhraseForSubphraseMatch(text) {
+    if (!text) return '';
+    return normalizeText(text)
+      .replace(/[,;:!?…«»“”"()[\]{}—–\/\\<>*+=~`^|]/g, ' ')
+      .replace(/(^|\s)['’]|['’](\s|$)/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   // Generate morphological stems / candidates for a French word
   function generateMorphologicalCandidates(word) {
     const candidates = new Set();
@@ -261,12 +283,39 @@
       en: "density",
       alt: ["dense set (topology)", "probability density (probability)"],
       category: "math",
-      subcategories: ["topology", "probability"],
+      subcategories: ["topology", "probability", "physics"],
       pos: "n.f.",
-      definition: "In topology, a subset whose closure is the entire space; in probability, the derivative of the cumulative distribution function.",
+      definition: "In topology, a subset whose closure is the entire space; in probability, the derivative of the cumulative distribution function; in physics, mass per unit volume.",
+      source: "Rudin, W. (1976). Principles of Mathematical Analysis; Feller, W. (1968). Introduction to Probability Theory.",
+      senses: [
+        {
+          id: "densite-probability",
+          domain: "Probability & Statistics",
+          category: "math",
+          translation: "probability density function (PDF)",
+          definition: "A function representing a continuous probability distribution such that P(a <= X <= b) = int_a^b f(t) dt.",
+          note: "Often termed 'densité de probabilité'."
+        },
+        {
+          id: "densite-topology",
+          domain: "Topology & Functional Analysis",
+          category: "math",
+          translation: "dense set / density",
+          definition: "A subset whose topological closure equals the whole space (e.g. ℚ is dense in ℝ).",
+          note: "Used for dense subspaces and approximation theorems."
+        },
+        {
+          id: "densite-physics",
+          domain: "Physics & Chemistry",
+          category: "science",
+          translation: "density / specific gravity",
+          definition: "Mass per unit volume or dimensionless relative density.",
+          note: "Physical material density."
+        }
+      ],
       examples: [
-        { fr: "L'ensemble ℚ des rationnels est dense dans ℝ.", en: "The set ℚ of rationals is dense in ℝ." },
-        { fr: "La fonction de densité de probabilité de la loi normale.", en: "The probability density function of the normal distribution." }
+        { fr: "L'ensemble ℚ des rationnels est dense dans ℝ.", en: "The set ℚ of rationals is dense in ℝ.", source: "Rudin, W. (1976). Principles of Mathematical Analysis." },
+        { fr: "La fonction de densité de probabilité de la loi normale.", en: "The probability density function of the normal distribution.", source: "Feller, W. (1968). Introduction to Probability Theory." }
       ]
     },
     {
@@ -637,17 +686,70 @@
       }
       all.push(...EXTENDED_ENTRIES);
 
-      // Deduplicate by normalized French term
-      const seen = new Set();
+      // Deduplicate by normalized French term while preserving distinct domain senses and metadata
       this.entries = [];
 
       for (const entry of all) {
         if (!entry || !entry.fr || !entry.en) continue;
         const normKey = normalizeText(entry.fr);
-        if (seen.has(normKey)) {
-          // Merge alternative translations or examples if exists
+
+        if (this.normMap.has(normKey)) {
           const existing = this.normMap.get(normKey);
-          if (existing && entry.examples) {
+
+          // Ensure existing entry has senses array initialized if not present
+          if (!existing.senses) {
+            existing.senses = [{
+              id: existing.id || `${normKey}-1`,
+              domain: existing.domain || (existing.subcategories && existing.subcategories[0]) || existing.category,
+              category: existing.category,
+              translation: existing.en,
+              definition: existing.definition || '',
+              note: existing.note || ''
+            }];
+          }
+
+          // If entry has explicit senses, merge them
+          if (entry.senses && Array.isArray(entry.senses)) {
+            for (const s of entry.senses) {
+              if (!existing.senses.some(es => es.translation.toLowerCase() === s.translation.toLowerCase() && es.domain === s.domain)) {
+                existing.senses.push(s);
+              }
+            }
+          } else {
+            // Check if this incoming entry represents a new sense (different translation or domain)
+            const isDifferentSense = !existing.senses.some(es =>
+              es.translation.toLowerCase() === entry.en.toLowerCase()
+            );
+            if (isDifferentSense) {
+              existing.senses.push({
+                id: entry.id || `${normKey}-${existing.senses.length + 1}`,
+                domain: entry.domain || (entry.subcategories && entry.subcategories[0]) || entry.category,
+                category: entry.category,
+                translation: entry.en,
+                definition: entry.definition || '',
+                note: entry.note || ''
+              });
+            }
+          }
+
+          // Merge alternative translations
+          if (entry.alt && Array.isArray(entry.alt)) {
+            existing.alt = existing.alt || [];
+            for (const a of entry.alt) {
+              if (!existing.alt.includes(a)) existing.alt.push(a);
+            }
+          }
+
+          // Merge synonyms
+          if (entry.synonyms && Array.isArray(entry.synonyms)) {
+            existing.synonyms = existing.synonyms || [];
+            for (const syn of entry.synonyms) {
+              if (!existing.synonyms.includes(syn)) existing.synonyms.push(syn);
+            }
+          }
+
+          // Merge examples without duplicating
+          if (entry.examples && Array.isArray(entry.examples)) {
             existing.examples = existing.examples || [];
             for (const ex of entry.examples) {
               if (!existing.examples.some(e => e.fr === ex.fr)) {
@@ -655,9 +757,24 @@
               }
             }
           }
+
+          // Merge subcategories
+          if (entry.subcategories && Array.isArray(entry.subcategories)) {
+            existing.subcategories = existing.subcategories || [];
+            for (const sub of entry.subcategories) {
+              if (!existing.subcategories.includes(sub)) existing.subcategories.push(sub);
+            }
+          }
+
+          // Merge citations / source metadata
+          if (entry.source && !existing.source) {
+            existing.source = entry.source;
+          }
+
+          // Continue without creating duplicate top-level entry
           continue;
         }
-        seen.add(normKey);
+
         this.entries.push(entry);
 
         // Populate lookup maps
@@ -676,7 +793,7 @@
         // English reverse index
         const enLower = entry.en.toLowerCase().trim();
         this.enToFrMap.set(enLower, entry);
-        
+
         // Split by / or ; or , to index individual translation alternatives
         const enParts = entry.en.split(/[\/,;()]+/).map(p => p.trim().toLowerCase()).filter(p => p.length >= 2);
         for (const part of enParts) {
@@ -688,6 +805,17 @@
         if (entry.alt) {
           for (const a of entry.alt) {
             this.enToFrMap.set(a.toLowerCase().trim(), entry);
+          }
+        }
+
+        if (entry.senses && Array.isArray(entry.senses)) {
+          for (const s of entry.senses) {
+            if (s.translation) {
+              const transLower = s.translation.toLowerCase().trim();
+              if (!this.enToFrMap.has(transLower)) {
+                this.enToFrMap.set(transLower, entry);
+              }
+            }
           }
         }
       }
@@ -706,23 +834,24 @@
       if (!this.initialized) this.init();
       if (!text || typeof text !== 'string') return null;
 
-      const trimmed = text.trim();
-      if (!trimmed || trimmed.length < 2) return null;
+      // 0. Clean outer boundary punctuation (commas, periods, colons, brackets, quotes)
+      const cleaned = stripBoundaryPunctuation(text);
+      if (!cleaned || cleaned.length < 2) return null;
 
-      // 1. Direct match
-      const lower = trimmed.toLowerCase();
+      // 1. Direct match on cleaned input
+      const lower = cleaned.toLowerCase();
       if (this.exactMap.has(lower)) {
         return this.exactMap.get(lower);
       }
 
       // 2. Normalized match (accents removed)
-      const norm = normalizeText(trimmed);
+      const norm = normalizeText(cleaned);
       if (this.normMap.has(norm)) {
         return this.normMap.get(norm);
       }
 
       // 3. Morphological candidates (stemming, plurals, elisions, feminine endings)
-      const candidates = generateMorphologicalCandidates(trimmed);
+      const candidates = generateMorphologicalCandidates(cleaned);
       for (const cand of candidates) {
         const cLower = cand.toLowerCase();
         if (this.exactMap.has(cLower)) {
@@ -734,7 +863,7 @@
         }
       }
 
-      // 4. Exact English to French reverse lookup (prioritized over loose sub-phrase matching)
+      // 4. Exact English to French reverse lookup
       if (this.enToFrMap.has(lower)) {
         return this.enToFrMap.get(lower);
       }
@@ -742,13 +871,13 @@
         return this.enToFrMap.get(norm);
       }
 
-      // 5. Multi-word sub-phrase match:
-      // If user highlighted a sentence or phrase like "l'espace vectoriel normé de dimension infinie"
-      // find the most prominent scientific term contained inside it
-      const normInput = ' ' + norm + ' ';
+      // 5. Multi-word sub-phrase match with punctuation boundary normalization:
+      // Handles complete sentences or clauses like "La valeur propre, notée λ, ..."
+      // Replaces clause-separating punctuation with spaces to ensure exact token boundary matches
+      const phraseNormInput = ' ' + tokenizePhraseForSubphraseMatch(cleaned) + ' ';
       for (const entry of this.sortedPhrases) {
-        const entryNorm = normalizeText(entry.fr);
-        if (entryNorm.length >= 3 && normInput.includes(' ' + entryNorm + ' ')) {
+        const entryNorm = tokenizePhraseForSubphraseMatch(entry.fr);
+        if (entryNorm.length >= 3 && phraseNormInput.includes(' ' + entryNorm + ' ')) {
           return entry;
         }
       }
@@ -758,12 +887,14 @@
 
     /**
      * Fuzzy / Prefix Search for Popup autocomplete
+     * Indexes headword, translation, alt translations, synonyms, domain senses, definitions, and examples
      */
     search(query, category = 'all', limit = 20) {
       if (!this.initialized) this.init();
       if (!query || typeof query !== 'string') return [];
 
-      const qNorm = normalizeText(query);
+      const qClean = stripBoundaryPunctuation(query);
+      const qNorm = normalizeText(qClean || query);
       if (!qNorm) return [];
 
       const results = [];
@@ -777,13 +908,29 @@
 
         let score = 0;
         if (frNorm === qNorm || enNorm === qNorm) {
-          score = 100; // exact
+          score = 100; // Exact headword / primary translation
         } else if (frNorm.startsWith(qNorm) || enNorm.startsWith(qNorm)) {
-          score = 75; // prefix
+          score = 80; // Prefix match in French headword or English
         } else if (frNorm.includes(qNorm) || enNorm.includes(qNorm)) {
-          score = 50; // substring
+          score = 60; // Substring in headword or English
+        } else if (entry.alt && entry.alt.some(a => normalizeText(a).includes(qNorm))) {
+          score = 50; // Match in alternative English translation
+        } else if (entry.synonyms && entry.synonyms.some(s => normalizeText(s).includes(qNorm))) {
+          score = 45; // Match in French synonyms
+        } else if (entry.senses && entry.senses.some(s =>
+          (s.translation && normalizeText(s.translation).includes(qNorm)) ||
+          (s.domain && normalizeText(s.domain).includes(qNorm)) ||
+          (s.definition && normalizeText(s.definition).includes(qNorm)) ||
+          (s.note && normalizeText(s.note).includes(qNorm))
+        )) {
+          score = 40; // Match in domain-specific senses
         } else if (entry.definition && normalizeText(entry.definition).includes(qNorm)) {
-          score = 25; // in definition
+          score = 30; // Match in definition text
+        } else if (entry.examples && entry.examples.some(ex =>
+          (ex.fr && normalizeText(ex.fr).includes(qNorm)) ||
+          (ex.en && normalizeText(ex.en).includes(qNorm))
+        )) {
+          score = 20; // Match in authentic example sentences
         }
 
         if (score > 0) {
@@ -829,5 +976,7 @@
   global.FrenchScienceDict = dict;
   global.FrenchScienceNormalize = normalizeText;
   global.FrenchScienceStrip = stripArticlesAndElision;
+  global.FrenchScienceStripPunct = stripBoundaryPunctuation;
+  global.FrenchScienceTokenizePhrase = tokenizePhraseForSubphraseMatch;
 
 })(typeof window !== 'undefined' ? window : globalThis);

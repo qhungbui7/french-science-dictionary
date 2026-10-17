@@ -18,6 +18,7 @@
   let activeEntry = null;
   let activeSelectionText = '';
   let isBookmarked = false;
+  let currentRequestId = 0; // Monotonically increasing request counter to eliminate race conditions
 
   // Default User Settings
   let settings = {
@@ -27,6 +28,17 @@
     autoPronounce: false,
     enableOnlineFallback: true
   };
+
+  // HTML Sanitization utility to prevent DOM-based XSS from webpage text or external API responses
+  function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   // Load settings from chrome storage if available
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
@@ -85,7 +97,7 @@
     }
     chrome.storage.local.get(['favorites'], (res) => {
       const favs = res.favorites || [];
-      const exists = favs.some(f => f.fr.toLowerCase() === term.toLowerCase());
+      const exists = favs.some(f => f.fr && f.fr.toLowerCase() === term.toLowerCase());
       callback(exists);
     });
   }
@@ -96,7 +108,7 @@
 
     chrome.storage.local.get(['favorites'], (res) => {
       let favs = res.favorites || [];
-      const index = favs.findIndex(f => f.fr.toLowerCase() === entry.fr.toLowerCase());
+      const index = favs.findIndex(f => f.fr && f.fr.toLowerCase() === entry.fr.toLowerCase());
 
       if (index >= 0) {
         favs.splice(index, 1);
@@ -133,7 +145,7 @@
     chrome.storage.local.get(['history'], (res) => {
       let history = res.history || [];
       // remove duplicate
-      history = history.filter(h => h.fr.toLowerCase() !== entry.fr.toLowerCase());
+      history = history.filter(h => h.fr && h.fr.toLowerCase() !== entry.fr.toLowerCase());
       history.unshift({
         fr: entry.fr,
         en: entry.en,
@@ -163,30 +175,45 @@
     }
   }
 
-  // Render Card Markup
+  // Render Card Markup with full HTML escaping on all dynamic properties
   function renderCardHTML(entry) {
     const badgeHTML = getCategoryBadge(entry.category);
-    const posHTML = entry.pos ? `<span class="fsd-pos">${entry.pos}</span>` : '';
+    const posHTML = entry.pos ? `<span class="fsd-pos">${escapeHTML(entry.pos)}</span>` : '';
     const noteHTML = entry.note ? `
       <div class="fsd-note-box">
         <span class="fsd-note-icon">⚠️</span>
-        <div><strong>Precision Caveat:</strong> ${entry.note}</div>
+        <div><strong>Precision Caveat:</strong> ${escapeHTML(entry.note)}</div>
       </div>
     ` : '';
 
     const defHTML = entry.definition ? `
-      <div class="fsd-definition">${entry.definition}</div>
+      <div class="fsd-definition">${escapeHTML(entry.definition)}</div>
     ` : '';
 
     const altHTML = entry.alt && entry.alt.length > 0 ? `
-      <div class="fsd-alt-terms">Also: <span>${entry.alt.join(', ')}</span></div>
+      <div class="fsd-alt-terms">Also: <span>${entry.alt.map(escapeHTML).join(', ')}</span></div>
+    ` : '';
+
+    // Render domain-specific distinct senses if multiple exist
+    const sensesHTML = (entry.senses && entry.senses.length > 1) ? `
+      <div class="fsd-senses-box">
+        <div class="fsd-senses-header">📚 Discipline Senses:</div>
+        ${entry.senses.map(s => `
+          <div class="fsd-sense-row">
+            <span class="fsd-sense-badge">[${escapeHTML(s.domain || s.category)}]</span>
+            <strong class="fsd-sense-trans">${escapeHTML(s.translation || s.en)}</strong>
+            ${s.note ? `<span class="fsd-sense-note">— ${escapeHTML(s.note)}</span>` : ''}
+          </div>
+        `).join('')}
+      </div>
     ` : '';
 
     const example = entry.examples && entry.examples.length > 0 ? entry.examples[0] : null;
     const exampleHTML = example ? `
       <div class="fsd-example-box">
-        <div class="fsd-example-fr">« ${example.fr} »</div>
-        <div class="fsd-example-en">“ ${example.en} ”</div>
+        <div class="fsd-example-fr">« ${escapeHTML(example.fr)} »</div>
+        <div class="fsd-example-en">“ ${escapeHTML(example.en)} ”</div>
+        ${example.source ? `<div class="fsd-example-src">Source: ${escapeHTML(example.source)}</div>` : ''}
       </div>
     ` : '';
 
@@ -203,13 +230,14 @@
       </div>
       <div class="fsd-body">
         <div class="fsd-term-row">
-          <span class="fsd-fr-term">${entry.fr}</span>
+          <span class="fsd-fr-term">${escapeHTML(entry.fr)}</span>
           <button class="fsd-speech-btn" title="Pronounce French">🔊 Écouter</button>
         </div>
         <div class="fsd-translation-block">
-          <div class="fsd-en-translation">${entry.en}</div>
+          <div class="fsd-en-translation">${escapeHTML(entry.en)}</div>
           ${altHTML}
         </div>
+        ${sensesHTML}
         ${noteHTML}
         ${defHTML}
         ${exampleHTML}
@@ -227,6 +255,7 @@
 
   // Render Loading Card for Online Fallback
   function renderLoadingCardHTML(searchTerm) {
+    const safeTerm = escapeHTML(searchTerm);
     return `
       <div class="fsd-header">
         <div class="fsd-header-left">
@@ -239,10 +268,53 @@
       <div class="fsd-body" style="align-items: center; justify-content: center; padding: 28px 16px;">
         <div class="fsd-loading-spinner"></div>
         <div style="margin-top: 12px; font-size: 13px; color: #94a3b8;">
-          Searching translation for « <strong>${searchTerm}</strong> »...
+          Searching translation for « <strong>${safeTerm}</strong> »...
         </div>
       </div>
     `;
+  }
+
+  // Render Offline Mode / Fallback Disabled Card
+  function showOfflineNotFoundCard(text, rect) {
+    const shadow = getOrCreateShadowRoot();
+    currentRequestId++; // Invalidate pending lookups
+    const reqId = currentRequestId;
+
+    if (!cardElement) {
+      cardElement = document.createElement('div');
+      cardElement.className = 'fsd-card';
+      shadow.appendChild(cardElement);
+    }
+
+    const safeText = escapeHTML(text);
+    cardElement.innerHTML = `
+      <div class="fsd-header">
+        <div class="fsd-header-left">
+          <span class="fsd-badge fsd-badge-general">Offline Mode</span>
+        </div>
+        <div class="fsd-header-actions">
+          <button class="fsd-icon-btn fsd-close-btn" title="Close">✕</button>
+        </div>
+      </div>
+      <div class="fsd-body" style="padding: 18px 16px;">
+        <div style="font-size: 13px; color: #f1f5f9; line-height: 1.45;">
+          Term « <strong>${safeText}</strong> » was not found in the curated offline dictionary.
+        </div>
+        <div style="font-size: 12px; color: #94a3b8; margin-top: 8px; line-height: 1.4;">
+          Online fallback translation is currently disabled in your extension preferences.
+        </div>
+      </div>
+    `;
+
+    positionCard(rect);
+    requestAnimationFrame(() => {
+      if (reqId === currentRequestId && cardElement) {
+        cardElement.classList.add('fsd-visible');
+      }
+    });
+
+    const closeBtn = cardElement.querySelector('.fsd-close-btn');
+    if (closeBtn) closeBtn.onclick = hideCard;
   }
 
   // Position Card relative to selection bounds
@@ -250,7 +322,7 @@
     if (!cardElement) return;
 
     const cardWidth = 380;
-    const estimatedHeight = 260;
+    const estimatedHeight = 280;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
@@ -275,6 +347,8 @@
     const shadow = getOrCreateShadowRoot();
     activeEntry = entry;
 
+    const reqId = ++currentRequestId;
+
     if (!cardElement) {
       cardElement = document.createElement('div');
       cardElement.className = 'fsd-card';
@@ -282,13 +356,18 @@
     }
 
     checkBookmarkStatus(entry.fr, (fav) => {
+      // Discard stale async callback if user selected another term or closed card
+      if (reqId !== currentRequestId || !cardElement) return;
+
       isBookmarked = fav;
       cardElement.innerHTML = renderCardHTML(entry);
       positionCard(rect);
 
       // Trigger entrance transition
       requestAnimationFrame(() => {
-        cardElement.classList.add('fsd-visible');
+        if (reqId === currentRequestId && cardElement) {
+          cardElement.classList.add('fsd-visible');
+        }
       });
 
       // Bind events
@@ -322,8 +401,8 @@
       // Record to lookup history
       recordHistory(entry);
 
-      // Optional auto-pronounce
-      if (settings.autoPronounce) {
+      // Enforce auto-pronounce setting if enabled
+      if (settings.autoPronounce && entry.fr) {
         speak(entry.fr, 'fr-FR');
       }
     });
@@ -381,8 +460,9 @@
     }
   }
 
-  // Hide Card
+  // Hide Card and invalidate pending async requests
   function hideCard() {
+    currentRequestId++; // Invalidate pending callbacks
     if (cardElement) {
       cardElement.classList.remove('fsd-visible');
       setTimeout(() => {
@@ -396,9 +476,11 @@
     activeEntry = null;
   }
 
-  // Online fallback via background script
+  // Online fallback via background script with request ID tracking & escaping
   function fetchOnlineTranslation(text, rect) {
     const shadow = getOrCreateShadowRoot();
+    const reqId = ++currentRequestId;
+
     if (!cardElement) {
       cardElement = document.createElement('div');
       cardElement.className = 'fsd-card';
@@ -414,10 +496,13 @@
 
     // Send translation request to background service worker
     chrome.runtime.sendMessage({ action: 'translate_fallback', text: text }, (response) => {
+      // Discard stale response if another request was triggered or card was closed
+      if (reqId !== currentRequestId || !cardElement) return;
+
       if (response && response.success && response.result) {
         showCard(response.result, rect);
       } else {
-        // Fallback display if not found
+        const safeText = escapeHTML(text);
         cardElement.innerHTML = `
           <div class="fsd-header">
             <div class="fsd-header-left">
@@ -429,7 +514,7 @@
           </div>
           <div class="fsd-body">
             <div style="font-size: 13px; color: #94a3b8;">
-              No scientific translation found for « <strong>${text}</strong> ».
+              No scientific translation found for « <strong>${safeText}</strong> ».
             </div>
           </div>
         `;
@@ -443,6 +528,12 @@
   function handleTextSelection(e) {
     // If click happened inside our shadow DOM card, ignore
     if (e && hostElement && hostElement.contains(e.target)) {
+      return;
+    }
+
+    // Enforce settings.autoTranslate: if disabled, do not trigger any selection translation
+    if (!settings.autoTranslate) {
+      hideCard();
       return;
     }
 
@@ -464,7 +555,7 @@
       return;
     }
 
-    // Check trigger mode
+    // Check trigger mode modifier key if 'alt' is configured
     if (settings.triggerMode === 'alt' && !e.altKey) {
       return;
     }
@@ -483,6 +574,8 @@
         showCard(entry, rect);
       } else if (settings.enableOnlineFallback) {
         fetchOnlineTranslation(selectedText, rect);
+      } else {
+        showOfflineNotFoundCard(selectedText, rect);
       }
     };
 
@@ -532,8 +625,11 @@
         const entry = window.FrenchScienceDict ? window.FrenchScienceDict.lookup(request.text) : null;
         if (entry) {
           showCard(entry, rect);
-        } else {
+        } else if (settings.enableOnlineFallback) {
           fetchOnlineTranslation(request.text, rect);
+        } else {
+          // Strictly respect online fallback toggle even in context-menu trigger
+          showOfflineNotFoundCard(request.text, rect);
         }
       }
     });

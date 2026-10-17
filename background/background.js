@@ -46,6 +46,13 @@ async function fetchOnlineFallback(text) {
   const clean = text.trim();
   if (!clean) return null;
 
+  // Enforce online fallback preference in shared service worker logic
+  const settingsData = await chrome.storage.local.get(['settings']);
+  const currentSettings = settingsData.settings || {};
+  if (currentSettings.enableOnlineFallback === false) {
+    return null;
+  }
+
   // Check cache first
   const cacheKey = clean.toLowerCase();
   const cacheData = await chrome.storage.local.get(['translationCache']);

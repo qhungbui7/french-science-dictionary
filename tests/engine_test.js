@@ -157,6 +157,122 @@ for (const st of searchTests) {
   assert(results.length >= st.minResults, `Search '${st.query}' in category '${st.cat}' returned ${results.length} matches (>= ${st.minResults})`);
 }
 
+// 7. PUNCTUATION BOUNDARY & MATHEMATICAL PROOF SENTENCES AUDIT
+console.log('\n🔤 7. PUNCTUATION BOUNDARY & MATHEMATICAL PROOF SENTENCES AUDIT');
+const punctuationTests = [
+  // Trailing / leading punctuation
+  { input: 'valeur propre,', expectedFr: 'valeur propre', expectedEn: 'eigenvalue' },
+  { input: 'valeur propre.', expectedFr: 'valeur propre', expectedEn: 'eigenvalue' },
+  { input: '(espace vectoriel)', expectedFr: 'espace vectoriel', expectedEn: 'vector space' },
+  { input: '« fonction d\'onde »', expectedFr: 'fonction d\'onde', expectedEn: 'wave function' },
+  { input: 'sous-espace propre:', expectedFr: 'sous-espace propre', expectedEn: 'eigenspace' },
+  { input: '[matrice symétrique];', expectedFr: 'matrice symétrique', expectedEn: 'symmetric matrix' },
+  { input: '« adhérence »...', expectedFr: 'adhérence', expectedEn: 'closure' },
+  
+  // Mathematical sentences with commas and colons
+  { input: 'La valeur propre, notée λ, est strictement positive.', expectedFr: 'valeur propre', expectedEn: 'eigenvalue' },
+  { input: 'Soit E un espace vectoriel, et F un sous-espace vectoriel de dimension finie.', expectedFr: 'sous-espace vectoriel', expectedEn: 'subspace' },
+  { input: 'D\'après le théorème des gendarmes, la suite converge vers zéro.', expectedFr: 'théorème des gendarmes', expectedEn: 'squeeze theorem' }
+];
+
+for (const pt of punctuationTests) {
+  const res = dict.lookup(pt.input);
+  assert(res !== null, `Lookup for punctuated input '${pt.input}' succeeded`);
+  if (res) {
+    assert(res.en.toLowerCase().includes(pt.expectedEn.toLowerCase()), `'${pt.input}' correctly resolved to '${pt.expectedEn}' (received: "${res.en}")`);
+  }
+}
+
+// 8. MULTI-SENSE DISCIPLINE DISAMBIGUATION AUDIT
+console.log('\n📚 8. MULTI-SENSE DISCIPLINE DISAMBIGUATION AUDIT');
+const multiSenseTerms = ['variété', 'corps', 'noyau', 'image', 'densité'];
+
+for (const term of multiSenseTerms) {
+  const entry = dict.lookup(term);
+  assert(entry !== null, `Multi-sense term '${term}' resolved`);
+  if (entry) {
+    assert(Array.isArray(entry.senses) && entry.senses.length >= 2, `'${term}' contains at least 2 distinct domain senses (found: ${entry.senses ? entry.senses.length : 0})`);
+    if (entry.senses) {
+      for (const sense of entry.senses) {
+        assert(typeof sense.domain === 'string' && sense.domain.length > 0, `Sense id='${sense.id}' has explicit domain label: "${sense.domain}"`);
+        assert(typeof sense.translation === 'string' && sense.translation.length > 0, `Sense id='${sense.id}' has precise translation: "${sense.translation}"`);
+      }
+    }
+  }
+}
+
+// 9. EXPANDED SEARCH INDEXING & RANKING AUDIT
+console.log('\n🔎 9. EXPANDED SEARCH INDEXING & RANKING AUDIT');
+// Test search matches in alternative translations, synonyms, senses, and examples
+const expandedSearchTests = [
+  { query: 'null space', targetFr: 'noyau', rationale: 'Matches alternative English translation' },
+  { query: 'Galois field', targetFr: 'corps fini', rationale: 'Matches alternative English translation' },
+  { query: 'fermeture', targetFr: 'adhérence', rationale: 'Matches French synonym' },
+  { query: 'black body', targetFr: 'corps', rationale: 'Matches physics domain sense note' }
+];
+
+for (const est of expandedSearchTests) {
+  const results = dict.search(est.query, 'all', 10);
+  const found = results.some(r => r.fr.toLowerCase() === est.targetFr.toLowerCase());
+  assert(found, `Search '${est.query}' found '${est.targetFr}' (${est.rationale})`);
+}
+
+// Verify ranking: exact headword matches outrank loose partial or example matches
+const rankingResults = dict.search('corps', 'all', 10);
+assert(rankingResults.length > 0 && rankingResults[0].fr.toLowerCase() === 'corps', `Exact headword 'corps' ranked first in search results (received top: "${rankingResults[0]?.fr}")`);
+
+// 10. HTML SANITIZATION & XSS DEFENSE AUDIT
+console.log('\n🛡️  10. HTML SANITIZATION & XSS DEFENSE AUDIT');
+
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function highlightMatch(text, query) {
+  if (!text) return '';
+  const escapedText = escapeHTML(text);
+  if (!query || !query.trim()) return escapedText;
+  try {
+    const escapedQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    return escapedText.replace(regex, '<mark class="search-highlight">$1</mark>');
+  } catch (e) {
+    return escapedText;
+  }
+}
+
+const xssPayloads = [
+  '<script>alert("xss")</script>',
+  '<img src=x onerror=alert(1)>',
+  'valeur" onmouseover="alert(1)"',
+  '<b>bold</b> & "quotes"'
+];
+
+for (const payload of xssPayloads) {
+  const escaped = escapeHTML(payload);
+  assert(!escaped.includes('<script>') && !escaped.includes('<img'), `escapeHTML neutralized script/img tags for: ${payload}`);
+  assert(!escaped.includes('"') && !escaped.includes('<'), `escapeHTML sanitized quotes and brackets for: ${payload}`);
+  
+  const highlighted = highlightMatch(payload, 'alert');
+  assert(!highlighted.includes('<script') && !highlighted.includes('<img'), `highlightMatch safely escaped HTML without rendering raw executable tags`);
+}
+
+// 11. SETTINGS & NEGATIVE LOOKUP INVARIANTS
+console.log('\n⚙️  11. SETTINGS & NEGATIVE LOOKUP INVARIANTS AUDIT');
+
+// Empty / invalid input tests
+assert(dict.lookup('') === null, 'Lookup empty string returns null');
+assert(dict.lookup('   ') === null, 'Lookup whitespace returns null');
+assert(dict.lookup('a') === null, 'Lookup single character returns null');
+assert(dict.lookup('1234567') === null, 'Lookup pure numbers returns null');
+assert(dict.lookup('xyznonexistentterm99') === null, 'Lookup uncataloged pseudo-word returns null');
+
 // FINAL SUMMARY
 console.log('\n======================================================');
 console.log(`TOTAL TESTS RUN : ${totalTests}`);

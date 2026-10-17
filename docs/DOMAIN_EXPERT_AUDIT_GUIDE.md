@@ -178,54 +178,52 @@ The engine implements a multi-pass normalization and lemmatization pipeline:
    - Third-person plural present: `-ent` ➔ `-er` (*convergent* ➔ *converger*).
    - Pronominal reflexive verbs: Conjugated forms like *s'annulent* / *s'annule* resolve to the infinitive *s'annuler*.
    - Participles and first-person plural: `-ant` ➔ `-er`, `-ons` ➔ `-er` (*posons* ➔ *poser*).
-7. **Greedy Multi-Word Matching**: Entries are sorted in descending order of character length. Multi-word phrases take precedence over individual component tokens (e.g. *descente de gradient stochastique* is matched as a single atomic unit rather than separately matching *gradient* or *descente*).
+7. **Punctuation Boundary Normalization & Token Separation**:
+   - Math prose frequently embeds scientific terms adjacent to punctuation: `valeur propre,`, `(espace vectoriel)`, `« fonction d'onde »:`.
+   - `stripBoundaryPunctuation()` strips boundary commas, colons, brackets, and quotes while strictly preserving internal hyphens (`sous-espace`, `sigma-algèbre`) and elided apostrophes (`d'onde`, `s'annuler`, `l'espace`).
+   - In full mathematical clauses (e.g. `La valeur propre, notée λ, ...`), `tokenizePhraseForSubphraseMatch()` converts non-word delimiters to single spaces to guarantee exact subphrase boundary matching.
+8. **Multi-Sense Discipline Disambiguation**:
+   - Rather than discarding secondary definitions during deduplication, entries maintain a structured `senses` array with domain tags (`variété`: Differential Geometry ➔ *manifold* vs. Algebraic Geometry ➔ *variety*; `corps`: Abstract Algebra ➔ *field* vs. Physics ➔ *body*; `noyau`: Linear Algebra ➔ *kernel* vs. Nuclear Physics ➔ *nucleus*).
+9. **Greedy Multi-Word Matching**: Entries are sorted in descending order of character length. Multi-word phrases take precedence over individual component tokens (e.g. *descente de gradient stochastique* is matched as a single atomic unit rather than separately matching *gradient* or *descente*).
 
 ---
 
 ## 5. Security & Privacy Audit
 
-### 5.1 Manifest V3 Compliance
+### 5.1 Manifest V3 Compliance & Minimal Permission Scope
 - Built strictly to the **Google Chrome & Chromium Manifest V3** specification.
 - Does **not** use `eval()`, `new Function()`, or any dynamically injected remote scripts.
 - Background process runs as an event-driven Service Worker (`background/background.js`).
+- `host_permissions` are strictly restricted to `["https://api.mymemory.translated.net/*"]` solely for opt-in translation fallback, rather than open network access.
+- `web_accessible_resources` are tightly scoped to `content/content.css` and `icons/*`, preventing arbitrary webpages from accessing internal dictionary files.
 
-### 5.2 Scoped Shadow DOM Isolation
+### 5.2 XSS Defense & Dynamic HTML Sanitization
+- Every dynamic variable originating from webpage selection, search input, local storage history, or external API responses is strictly escaped via `escapeHTML()` prior to DOM rendering.
+- `highlightMatch()` escapes text before applying regex match markers (`<mark>`), preventing attribute injection and script execution vulnerabilities.
+
+### 5.3 Asynchronous State & Request Invalidation
+- All selection lookups and asynchronous storage/network callbacks are guarded with a monotonically increasing `currentRequestId`.
+- Delayed network responses or bookmark callbacks from earlier selections are automatically invalidated and dropped if the user selects another term or closes the card.
+
+### 5.4 Scoped Shadow DOM Isolation
 The extension UI is injected using an isolated Shadow DOM (`mode: 'open'` on `#french-science-dict-host`):
 - **Zero Style Pollution**: Host page CSS rules (CSS resets, frameworks like Tailwind or Bootstrap, high-specificity selectors) cannot leak into or break the tooltip layout.
 - **Zero Host Tampering**: Extension styles cannot affect host webpage layout.
 - **Z-Index Boundary**: Configured with `z-index: 2147483647` to ensure readability over fixed scientific viewers (e.g. MathJax containers, PDF readers, arXiv HTML viewers).
 
-### 5.3 Privacy & Data Transmission Policy
+### 5.5 Privacy & Enforced Offline Operation
 - **Offline-First by Design**: The core scientific database resides entirely inside the extension package. Zero network requests occur during normal operation.
 - **Zero Telemetry**: No analytics, telemetry trackers, or external logging.
 - **Local Storage Isolation**: Search history and bookmarks are saved exclusively to the browser's sandboxed `chrome.storage.local`.
-- **Online Fallback Transparency**: Online fallback queries are strictly opt-in (toggleable via the Settings tab), triggering only when an uncataloged term is highlighted and the user has enabled the fallback.
+- **Enforced Fallback Policy**: When `enableOnlineFallback` is disabled in preferences, external translation requests are categorically blocked across all interfaces, including selection tooltips and context-menu lookups.
 
 ---
 
 ## 6. How to Run Automated Verification Tests
 
-Domain experts can verify all lexical mappings, false friend guarantees, and morphological stemming rules by running the built-in test suite:
+Domain experts can verify all lexical mappings, false friend guarantees, boundary punctuation rules, and morphological stemming rules by running the built-in test suite:
 
 ```bash
 # From the project root
 npm test
-```
-
-Expected output:
-```
-======================================================
-🧪 FRENCH SCIENCE DICTIONARY - DOMAIN AUDIT TEST SUITE
-======================================================
-📊 1. DATABASE INTEGRITY & METRICS (PASS)
-⚠️  2. SCIENTIFIC FALSE FRIENDS AUDIT (PASS)
-🧠 3. MORPHOLOGICAL STEMMING & LEMMATIZATION AUDIT (PASS)
-📐 4. MULTI-WORD EXPRESSION GREEDY MATCHING AUDIT (PASS)
-🔄 5. REVERSE ENGLISH-TO-FRENCH LOOKUPS AUDIT (PASS)
-🔍 6. SEARCH & AUTOCOMPLETE ENGINE AUDIT (PASS)
-======================================================
-TOTAL TESTS RUN : 95
-PASSED          : 95
-FAILED          : 0
-🎉 ALL AUDIT AND REGRESSION TESTS PASSED WITH 100% SUCCESS!
 ```

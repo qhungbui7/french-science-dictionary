@@ -204,6 +204,57 @@
   color: #cbd5e1;
 }
 
+/* Discipline Senses Box */
+.fsd-senses-box {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fsd-senses-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #94a3b8;
+}
+
+.fsd-sense-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  line-height: 1.4;
+}
+
+.fsd-sense-badge {
+  color: #38bdf8;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.fsd-sense-trans {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+.fsd-sense-note {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.fsd-example-src {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 /* Precision Warning Box */
 .fsd-note-box {
   background: rgba(239, 68, 68, 0.12);
