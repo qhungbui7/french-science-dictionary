@@ -3,6 +3,7 @@
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-38bdf8?style=flat-square)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 [![Browser](https://img.shields.io/badge/Browser-Brave%20%7C%20Chrome%20%7C%20Chromium-f97316?style=flat-square)](https://brave.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-ff5e5b?style=flat-square&logo=kofi&logoColor=white)](https://ko-fi.com/quochungbui)
 
 An open-source, precision **French-to-English scientific dictionary extension for Brave and Google Chrome**. Designed specifically for students, researchers, mathematicians, and engineers reading French scientific literature, textbooks, and research papers (e.g., Bourbaki, Poincaré, Paris-Saclay lecture notes, CNRS, INRIA, arXiv).
 
@@ -115,13 +116,27 @@ french-science-dictionary/
 ## ⚙️ Configuration & Options
 
 Click the extension icon or right-click to open **Options**:
-- **Auto-Translate on Highlight**: Toggle instant translation on or off.
+- **Auto-Translate on Highlight**: Toggle highlight translation on or off.
 - **Trigger Mode**:
-  - `Instant Popover` (default): Appears immediately on text selection.
-  - `Floating Icon`: Shows a subtle `🔬` icon next to selection; click to expand.
+  - `Click Floating Button` (default): Shows a subtle `🔬 Translate` floating pill near the cursor to translate on demand.
+  - `Instant Popover`: Appears immediately on text selection.
   - `Alt / Option Key`: Only translates when holding `Alt` while selecting.
-- **Auto-Pronounce**: Automatically speak the French pronunciation on selection.
-- **Online Fallback**: Query online scientific translation if an ultra-rare word is not in the offline database.
+- **Auto-Pronounce**: Automatically speak the French pronunciation upon displaying the translation card.
+- **Online Fallback**: Query online scientific translation service when an uncataloged word is selected (strictly respects off toggle).
+
+---
+
+## ☕ Support & Donations
+
+If you find the **French Science & Math Dictionary** helpful in your studies, research, or daily reading of French academic papers, consider supporting this open-source project!
+
+[![Support on Ko-fi](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Ko--fi-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/quochungbui)
+
+👉 **Donate via Ko-fi**: [https://ko-fi.com/quochungbui](https://ko-fi.com/quochungbui)
+
+Your support directly funds:
+- Curating and auditing specialized subfields (algebraic topology, Riemannian geometry, quantum field theory, deep learning theory).
+- Maintaining zero-latency offline performance and open-source releases for Brave and Chrome users.
 
 ---
 

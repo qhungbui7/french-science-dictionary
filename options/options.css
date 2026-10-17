@@ -64,6 +64,34 @@ body {
   color: var(--text-secondary);
 }
 
+.header-action-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kofi-header-link {
+  color: #ff8b89;
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 94, 91, 0.12);
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 94, 91, 0.35);
+  transition: all 0.15s ease;
+}
+
+.kofi-header-link:hover {
+  background: #ff5e5b;
+  color: #ffffff;
+  border-color: #ff5e5b;
+  transform: translateY(-1px);
+}
+
 .github-link {
   color: var(--accent-blue);
   text-decoration: none;
@@ -195,6 +223,45 @@ input:checked + .slider:before {
 
 .danger-btn:hover {
   background: rgba(244, 63, 94, 0.25);
+}
+
+/* Donate Section */
+.donate-section {
+  background: linear-gradient(135deg, rgba(255, 94, 91, 0.12), rgba(30, 41, 59, 0.7));
+  border: 1px solid rgba(255, 94, 91, 0.35);
+}
+
+.donate-section p {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.donate-action-row {
+  display: flex;
+  align-items: center;
+}
+
+.donate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ff5e5b;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(255, 94, 91, 0.35);
+  transition: all 0.15s ease;
+}
+
+.donate-button:hover {
+  background: #e04b48;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 94, 91, 0.45);
 }
 
 .about-section p {

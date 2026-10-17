@@ -3,6 +3,7 @@
 
 ## 2026-10-17
 
+- 04:55 - Add Ko-fi donation and support section (https://ko-fi.com/quochungbui) across README.md, popup UI, options page, and verification test page
 - 04:37 - Fix P1/P2 code review findings: secure HTML rendering against XSS, enforce autoTranslate/autoPronounce/offlineFallback settings, resolve punctuation boundary phrase matching, preserve multi-sense discipline entries, eliminate async tooltip race conditions, expand search index, and add 74 new regression tests
 - 04:19 - Switch default translation behavior from instant popover to on-demand floating Translate button
 - 04:19 - Add sleek glassmorphic Translate button pill with micro-animation and responsive viewport clamping
